@@ -26,4 +26,4 @@ add_executable(hello
   imgui_impl_glfw.cpp
   imgui_impl_opengl3.cpp)
 
-target_link_libraries(hello ${OPENGL_LIBRARY} glfw ${GLEW_LIBRARY})
+target_link_libraries(hello ${OPENGL_LIBRARY} glfw ${GLEW_LIBRARIES})
