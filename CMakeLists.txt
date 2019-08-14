@@ -10,11 +10,12 @@ set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(ECL REQUIRED)
 
 include_directories(
   ${OPENGL_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIRS}
-
+  ${ECL_INCLUDE_DIR}
   )
 
 add_executable(hello
@@ -26,4 +27,4 @@ add_executable(hello
   imgui_impl_glfw.cpp
   imgui_impl_opengl3.cpp)
 
-target_link_libraries(hello ${OPENGL_LIBRARY} glfw ${GLEW_LIBRARIES})
+target_link_libraries(hello ${OPENGL_LIBRARY} glfw ${GLEW_LIBRARIES} ${ECL_LIBRARIES})
