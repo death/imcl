@@ -3,3 +3,6 @@ CMakeFiles/
 CMakeCache.txt
 Makefile
 cmake_install.cmake
+GTAGS
+GPATH
+GRTAGS

@@ -5,6 +5,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "cl_bindings.hpp"
 #include <stdio.h>
 #include <math.h>
 #include <ecl/ecl.h>
@@ -37,108 +38,6 @@
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
-}
-
-static const char* asText(cl_object obj)
-{
-	return ecl_base_string_pointer_safe(si_coerce_to_base_string(cl_princ_to_string(obj)));
-}
-
-static int asInt(cl_object obj)
-{
-	return ecl_to_int32_t(ecl_truncate1(obj));
-}
-
-static float asFloat(cl_object obj)
-{
-	return ecl_to_float(obj);
-}
-
-static bool asBool(cl_object obj)
-{
-	return !Null(obj);
-}
-
-static cl_object asObject(cl_object obj)
-{
-	return obj;
-}
-
-#define POPARG(fn, def) (nargs > 0 ? nargs--, fn(ecl_va_arg(ap)) : (def))
-
-#define RETINT(x) result = ecl_make_int32_t((x))
-
-#define RETBOOL(x) result = (x) ? ECL_T : ECL_NIL
-
-#define APIFUNC(name)						\
-	static cl_object clapi_ ## name(cl_narg nargs, ...)	\
-	{							\
-	ecl_va_list ap;						\
-	cl_object result = ECL_NIL;				\
-	ecl_va_start(ap, nargs, nargs, 0);
-
-#define APIFUNC_END 				\
-	ecl_va_end(ap);				\
-	ecl_return1(ecl_process_env(), result); \
-	}
-
-APIFUNC(begin)
-{
-    const char *label = POPARG(asText, "Window");
-    bool ret = ImGui::Begin(label);
-    RETBOOL(ret);
-}
-APIFUNC_END
-
-APIFUNC(end)
-{
-    ImGui::End();
-}
-APIFUNC_END
-
-APIFUNC(text)
-{
-    const char *label = POPARG(asText, "Text");
-    ImGui::Text(label);
-}
-APIFUNC_END
-
-APIFUNC(button)
-{
-    const char *label = POPARG(asText, "Button");
-    bool ret = ImGui::Button(label);
-    RETBOOL(ret);
-}
-APIFUNC_END
-
-APIFUNC(sameline)
-{
-    ImGui::SameLine();
-}
-APIFUNC_END
-
-APIFUNC(separator)
-{
-    ImGui::Separator();
-}
-APIFUNC_END
-
-APIFUNC(begingroup)
-{
-    ImGui::BeginGroup();
-}
-APIFUNC_END
-
-APIFUNC(endgroup)
-{
-    ImGui::EndGroup();
-}
-APIFUNC_END
-
-static void define(const char *name, cl_objectfn fn)
-{
-    ecl_shadow(ecl_read_from_cstring(name), ecl_current_package());
-    ecl_def_c_function_va(ecl_read_from_cstring(name), fn);
 }
 
 int main(int argc, char **argv)
@@ -224,19 +123,13 @@ int main(int argc, char **argv)
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    define("begin", clapi_begin);
-    define("end", clapi_end);
-    define("text", clapi_text);
-    define("button", clapi_button);
-    define("same-line", clapi_sameline);
-    define("separator", clapi_separator);
-    define("begin-group", clapi_begingroup);
-    define("end-group", clapi_endgroup);
+    cl_define_bindings();
 
     cl_eval(c_string_to_object("(load \"main\")"));
     cl_eval(c_string_to_object("(init)"));
 
     cl_object calltick = c_string_to_object("(tick)");
+    int subsequent_lisp_errors = 0;
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -269,7 +162,18 @@ int main(int argc, char **argv)
             ImGui::ShowDemoWindow(&show_demo_window);
         }
 
-        cl_eval(calltick);
+        cl_env_ptr env = ecl_process_env();
+        ECL_CATCH_ALL_BEGIN(env) {
+            cl_eval(calltick);
+            subsequent_lisp_errors = 0;
+        }
+        ECL_CATCH_ALL_IF_CAUGHT {
+            subsequent_lisp_errors++;
+            if (subsequent_lisp_errors < 2) {
+                fprintf(stderr, "Caught a Lisp error\n");
+            }
+        }
+        ECL_CATCH_ALL_END;
 
         // Rendering
         ImGui::Render();

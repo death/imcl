@@ -25,6 +25,7 @@ add_executable(hello
   imgui_draw.cpp
   imgui_widgets.cpp
   imgui_impl_glfw.cpp
-  imgui_impl_opengl3.cpp)
+  imgui_impl_opengl3.cpp
+  cl_bindings.cpp)
 
 target_link_libraries(hello ${OPENGL_LIBRARY} glfw ${GLEW_LIBRARIES} ${ECL_LIBRARIES})
