@@ -48,6 +48,34 @@ static cl_object asObject(cl_object obj)
 	ecl_return1(ecl_process_env(), result); \
 	}
 
+// Convenience
+
+bool ecl_imvec2_p(cl_object object, ImVec2 & result)
+{
+    if (cl_consp(object) == ECL_NIL) {
+        return false;
+    }
+    cl_object car = cl_car(object);
+    if (!ecl_realp(car)) {
+        return false;
+    }
+    cl_object cdr = cl_cdr(object);
+    if (cl_consp(object) == ECL_NIL) {
+        return false;
+    }
+    cl_object cadr = cl_car(cdr);
+    if (!ecl_realp(cadr)) {
+        return false;
+    }
+    cl_object cddr = cl_cdr(cdr);
+    if (cl_null(cddr) == ECL_NIL) {
+        return false;
+    }
+    result.x = ecl_to_float(car);
+    result.y = ecl_to_float(cadr);
+    return true;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -77,22 +105,7 @@ APIFUNC(button)
     cl_object size = POPARG(asObject, ECL_NIL);
 
     ImVec2 sz(0, 0);
-    if (cl_consp(size) != ECL_NIL) {
-        cl_object car = cl_car(size);
-        if (ecl_realp(car)) {
-            cl_object cdr = cl_cdr(size);
-            if (cl_consp(cdr) != ECL_NIL) {
-                cl_object cadr = cl_car(cdr);
-                if (ecl_realp(cadr)) {
-                    cl_object cddr = cl_cdr(cdr);
-                    if (cl_null(cddr) != ECL_NIL) {
-                        sz.x = ecl_to_float(car);
-                        sz.y = ecl_to_float(cadr);
-                    }
-                }
-            }
-        }
-    }
+    ecl_imvec2_p(size, sz);
 
     bool ret = ImGui::Button(label, sz);
     RETBOOL(ret);
@@ -187,6 +200,170 @@ APIFUNC(dragfloat)
 }
 APIFUNC_END
 
+enum cl_stylevar_type
+{
+    STYLEVAR_TYPE_FLOAT,
+    STYLEVAR_TYPE_IMVEC2,
+};
+
+struct cl_stylevar_entry
+{
+    cl_object symbol;
+    int idx;
+    int type;
+};
+
+struct cl_stylevar_entry *stylevarlist()
+{
+    static struct cl_stylevar_entry list[ImGuiStyleVar_COUNT];
+    static bool init = true;
+
+    if (init) {
+        list[0].symbol = ecl_make_keyword("ALPHA");
+        list[0].type = STYLEVAR_TYPE_FLOAT;
+        list[1].symbol = ecl_make_keyword("WINDOW-PADDING");
+        list[1].type = STYLEVAR_TYPE_IMVEC2;
+        list[2].symbol = ecl_make_keyword("WINDOW-ROUNDING");
+        list[2].type = STYLEVAR_TYPE_FLOAT;
+        list[3].symbol = ecl_make_keyword("WINDOW-BORDER-SIZE");
+        list[3].type = STYLEVAR_TYPE_FLOAT;
+        list[4].symbol = ecl_make_keyword("WINDOW-MIN-SIZE");
+        list[4].type = STYLEVAR_TYPE_IMVEC2;
+        list[5].symbol = ecl_make_keyword("WINDOW-TITLE-ALIGN");
+        list[5].type = STYLEVAR_TYPE_IMVEC2;
+        list[6].symbol = ecl_make_keyword("CHILD-ROUNDING");
+        list[6].type = STYLEVAR_TYPE_FLOAT;
+        list[7].symbol = ecl_make_keyword("CHILD-BORDER-SIZE");
+        list[7].type = STYLEVAR_TYPE_FLOAT;
+        list[8].symbol = ecl_make_keyword("POPUP-ROUNDING");
+        list[8].type = STYLEVAR_TYPE_FLOAT;
+        list[9].symbol = ecl_make_keyword("POPUP-BORDER-SIZE");
+        list[9].type = STYLEVAR_TYPE_FLOAT;
+        list[10].symbol = ecl_make_keyword("FRAME-PADDING");
+        list[10].type = STYLEVAR_TYPE_IMVEC2;
+        list[11].symbol = ecl_make_keyword("FRAME-ROUNDING");
+        list[11].type = STYLEVAR_TYPE_FLOAT;
+        list[12].symbol = ecl_make_keyword("FRAME-BORDER-SIZE");
+        list[12].type = STYLEVAR_TYPE_FLOAT;
+        list[13].symbol = ecl_make_keyword("ITEM-SPACING");
+        list[13].type = STYLEVAR_TYPE_IMVEC2;
+        list[14].symbol = ecl_make_keyword("ITEM-INNER-SPACING");
+        list[14].type = STYLEVAR_TYPE_IMVEC2;
+        list[15].symbol = ecl_make_keyword("INDENT-SPACING");
+        list[15].type = STYLEVAR_TYPE_FLOAT;
+        list[16].symbol = ecl_make_keyword("SCROLL-BAR-SIZE");
+        list[16].type = STYLEVAR_TYPE_FLOAT;
+        list[17].symbol = ecl_make_keyword("SCROLL-BAR-ROUNDING");
+        list[17].type = STYLEVAR_TYPE_FLOAT;
+        list[18].symbol = ecl_make_keyword("GRAB-MIN-SIZE");
+        list[18].type = STYLEVAR_TYPE_FLOAT;
+        list[19].symbol = ecl_make_keyword("GRAB-ROUNDING");
+        list[19].type = STYLEVAR_TYPE_FLOAT;
+        list[20].symbol = ecl_make_keyword("TAB-ROUNDING");
+        list[20].type = STYLEVAR_TYPE_FLOAT;
+        list[21].symbol = ecl_make_keyword("BUTTON-TEXT-ALIGN");
+        list[21].type = STYLEVAR_TYPE_IMVEC2;
+        list[22].symbol = ecl_make_keyword("SELECTABLE-TEXT-ALIGN");
+        list[22].type = STYLEVAR_TYPE_IMVEC2;
+
+        for (int i = 0; i < ImGuiStyleVar_COUNT; i++) {
+            list[i].idx = i;
+        }
+
+        init = false;
+    }
+
+    return list;
+}
+
+APIFUNC(pushstylevar)
+{
+    cl_object whichvar = POPARG(asObject, ECL_NIL);
+    if (ecl_keywordp(whichvar)) {
+        struct cl_stylevar_entry *list = stylevarlist();
+        int i;
+        for (i = 0; i < ImGuiStyleVar_COUNT; i++) {
+            if (ecl_equal(list[i].symbol, whichvar)) {
+                break;
+            }
+        }
+        if (i < ImGuiStyleVar_COUNT) {
+            cl_object lispval = POPARG(asObject, ECL_NIL);
+            ImVec2 vecval(0, 0);
+            if (ecl_imvec2_p(lispval, vecval)) {
+                if (list[i].type == STYLEVAR_TYPE_IMVEC2) {
+                    ImGui::PushStyleVar(list[i].idx, vecval);
+                } else {
+                    FEerror("value is not an imvec2", 0);
+                }
+            } else if (ecl_realp(lispval)) {
+                if (list[i].type == STYLEVAR_TYPE_FLOAT) {
+                    float fval = ecl_to_float(lispval);
+                    ImGui::PushStyleVar(list[i].idx, fval);
+                } else {
+                    FEerror("value is not a float", 0);
+                }
+            } else {
+                FEerror("value is not an imvec2 or a float", 0);
+            }
+        } else {
+            FEerror("unexpected style var name", 0);
+        }
+    } else {
+        FEerror("var name is not a keyword", 0);
+    }
+}
+APIFUNC_END
+
+APIFUNC(popstylevar)
+{
+    int count = POPARG(asInt, 1);
+    ImGui::PopStyleVar(count);
+}
+APIFUNC_END
+
+APIFUNC(columns)
+{
+    // count int
+    // id string
+    // border bool
+}
+APIFUNC_END
+
+APIFUNC(pushid)
+{
+    // id (string or int)
+}
+APIFUNC_END
+
+APIFUNC(popid)
+{
+    ImGui::PopID();
+}
+APIFUNC_END
+
+APIFUNC(aligntexttoframepadding)
+{
+    ImGui::AlignTextToFramePadding();
+}
+APIFUNC_END
+
+APIFUNC(nextcolumn)
+{
+    ImGui::NextColumn();
+}
+APIFUNC_END
+
+APIFUNC(inputfloat)
+{
+    // label string
+    // v *float
+    // step float
+    // step-fast float
+    // format string
+    // flags ImGuiInputTextFlags
+}
+APIFUNC_END
 
 // Bindings definition
 
@@ -215,4 +392,12 @@ void cl_define_bindings()
     define("tree-pop", clapi_treepop);
     define("set-next-item-width", clapi_setnextitemwidth);
     define("drag-float", clapi_dragfloat);
+    define("push-style-var", clapi_pushstylevar);
+    define("pop-style-var", clapi_popstylevar);
+    define("columns", clapi_columns);
+    define("push-id", clapi_pushid);
+    define("pop-id", clapi_popid);
+    define("align-text-to-frame-padding", clapi_aligntexttoframepadding);
+    define("next-column", clapi_nextcolumn);
+    define("input-float", clapi_inputfloat);
 }
