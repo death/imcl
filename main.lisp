@@ -8,9 +8,9 @@
 ;; Convenience macros
 
 (defmacro window (name &body forms)
-  `(progn
-     (when (begin ,name)
-       ,@forms)
+  `(unwind-protect
+        (when (begin ,name)
+          ,@forms)
      (end)))
 
 (defmacro group (&body forms)
@@ -171,11 +171,21 @@
   (window "Test"
     (text "This is a test")))
 
+;; User tick
+
+(defun user-tick ()
+  (with-style (:window-rounding 4.0 :alpha 0.9)
+    (window-inspector)))
+
 ;; Entry points
 
 (defun init ())
 
 (defun tick ()
-  (with-style (:window-rounding 4.0
-               :alpha 0.9)
-    (window-inspector)))
+  ;; TODO: Find out a way to have an nonblocking debugger using ECL.
+  (handler-case
+      (user-tick)
+    (error (e)
+      (set-next-window-size '(430 450) :first-use-ever)
+      (window "Lisp error"
+        (text (format nil "~A~%" e))))))

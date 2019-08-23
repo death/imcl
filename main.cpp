@@ -129,7 +129,6 @@ int main(int argc, char **argv)
     cl_eval(c_string_to_object("(init)"));
 
     cl_object calltick = c_string_to_object("(tick)");
-    int subsequent_lisp_errors = 0;
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -165,13 +164,12 @@ int main(int argc, char **argv)
         cl_env_ptr env = ecl_process_env();
         ECL_CATCH_ALL_BEGIN(env) {
             cl_eval(calltick);
-            subsequent_lisp_errors = 0;
         }
         ECL_CATCH_ALL_IF_CAUGHT {
-            subsequent_lisp_errors++;
-            if (subsequent_lisp_errors < 2) {
-                fprintf(stderr, "Caught a Lisp error\n");
+            if (ImGui::Begin("Lisp error")) {
+                ImGui::Text("An error was signaled by TICK");
             }
+            ImGui::End();
         }
         ECL_CATCH_ALL_END;
 
