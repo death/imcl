@@ -130,14 +130,14 @@
   (window "Current time"
     (text (current-time-string))))
 
-;; Inspector
+;; Property Editor example port from C++
 
-(defvar *inspector-float-values*
+(defvar *property-editor-float-values*
   (vector 1.0 1.0 1.0 1.0 1.0 1.0 0.1 0.1))
 
-(defun window-inspector ()
+(defun window-property-editor ()
   (set-next-window-size '(430 450) :first-use-ever)
-  (window "Inspector"
+  (window "Property Editor"
     (with-style (:frame-padding '(2 2))
       (columns 2)
       (separator)
@@ -175,7 +175,7 @@
 
 (defun user-tick ()
   (with-style (:window-rounding 4.0 :alpha 0.9)
-    (window-inspector)))
+    (window-property-editor)))
 
 ;; Entry points
 
