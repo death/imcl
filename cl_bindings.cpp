@@ -3,29 +3,29 @@
 
 // Support
 
-static const char* asText(cl_object obj)
+static const char* as_text(cl_object obj)
 {
-	return ecl_base_string_pointer_safe(si_coerce_to_base_string(cl_princ_to_string(obj)));
+    return ecl_base_string_pointer_safe(si_coerce_to_base_string(cl_princ_to_string(obj)));
 }
 
-static int asInt(cl_object obj)
+static int as_int(cl_object obj)
 {
-	return ecl_to_int32_t(ecl_truncate1(obj));
+    return ecl_to_int32_t(ecl_truncate1(obj));
 }
 
-static float asFloat(cl_object obj)
+static float as_float(cl_object obj)
 {
-	return ecl_to_float(obj);
+    return ecl_to_float(obj);
 }
 
-static bool asBool(cl_object obj)
+static bool as_bool(cl_object obj)
 {
-	return !Null(obj);
+    return !Null(obj);
 }
 
-static cl_object asObject(cl_object obj)
+static cl_object as_object(cl_object obj)
 {
-	return obj;
+    return obj;
 }
 
 #define POPARG(fn, def) (nargs > 0 ? nargs--, fn(ecl_va_arg(ap)) : (def))
@@ -36,17 +36,17 @@ static cl_object asObject(cl_object obj)
 
 #define RETBOOL(x) result = (x) ? ECL_T : ECL_NIL
 
-#define APIFUNC(name)						\
-	static cl_object clapi_ ## name(cl_narg nargs, ...)	\
-	{							\
-	ecl_va_list ap;						\
-	cl_object result = ECL_NIL;				\
-	ecl_va_start(ap, nargs, nargs, 0);
+#define APIFUNC(name)                                   \
+    static cl_object clapi_ ## name(cl_narg nargs, ...) \
+    {                                                   \
+    ecl_va_list ap;                                     \
+    cl_object result = ECL_NIL;                         \
+    ecl_va_start(ap, nargs, nargs, 0);
 
-#define APIFUNC_END 				\
-	ecl_va_end(ap);				\
-	ecl_return1(ecl_process_env(), result); \
-	}
+#define APIFUNC_END                             \
+    ecl_va_end(ap);                             \
+    ecl_return1(ecl_process_env(), result);     \
+    }
 
 // Convenience
 
@@ -80,7 +80,7 @@ bool ecl_imvec2_p(cl_object object, ImVec2 & result)
 
 APIFUNC(begin)
 {
-    const char *label = POPARG(asText, "Window");
+    const char *label = POPARG(as_text, "Window");
     bool ret = ImGui::Begin(label);
     RETBOOL(ret);
 }
@@ -94,15 +94,15 @@ APIFUNC_END
 
 APIFUNC(text)
 {
-    const char *label = POPARG(asText, "Text");
+    const char *label = POPARG(as_text, "Text");
     ImGui::Text(label);
 }
 APIFUNC_END
 
 APIFUNC(button)
 {
-    const char *label = POPARG(asText, "Button");
-    cl_object size = POPARG(asObject, ECL_NIL);
+    const char *label = POPARG(as_text, "Button");
+    cl_object size = POPARG(as_object, ECL_NIL);
 
     ImVec2 sz(0, 0);
     ecl_imvec2_p(size, sz);
@@ -138,7 +138,7 @@ APIFUNC_END
 
 APIFUNC(pushitemwidth)
 {
-    int width = POPARG(asInt, -1);
+    int width = POPARG(as_int, -1);
     ImGui::PushItemWidth(width);
 }
 APIFUNC_END
@@ -151,7 +151,7 @@ APIFUNC_END
 
 APIFUNC(collapsingheader)
 {
-    const char *label = POPARG(asText, "CollapsingHeader");
+    const char *label = POPARG(as_text, "CollapsingHeader");
     bool ret = ImGui::CollapsingHeader(label);
     RETBOOL(ret);
 }
@@ -165,14 +165,14 @@ APIFUNC_END
 
 APIFUNC(bullettext)
 {
-    const char *label = POPARG(asText, "BulletText");
+    const char *label = POPARG(as_text, "BulletText");
     ImGui::BulletText(label);
 }
 APIFUNC_END
 
 APIFUNC(treenode)
 {
-    const char *label = POPARG(asText, "TreeNode");
+    const char *label = POPARG(as_text, "TreeNode");
     bool ret = ImGui::TreeNode(label);
     RETBOOL(ret);
 }
@@ -186,16 +186,21 @@ APIFUNC_END
 
 APIFUNC(setnextitemwidth)
 {
-    int width = POPARG(asInt, -1);
+    int width = POPARG(as_int, -1);
     ImGui::SetNextItemWidth(width);
 }
 APIFUNC_END
 
 APIFUNC(dragfloat)
 {
-    const char *name = POPARG(asText, "float");
-    float f = POPARG(asFloat, 0.0F);
-    ImGui::DragFloat(name, &f);
+    const char *label = POPARG(as_text, "float");
+    float f = POPARG(as_float, 0.0F);
+    float v_speed = POPARG(as_float, 1.0F);
+    float v_min = POPARG(as_float, 0.0F);
+    float v_max = POPARG(as_float, 0.0F);
+    const char *format = POPARG(as_text, "%.3f");
+    float power = POPARG(as_float, 1.0);
+    ImGui::DragFloat(label, &f, v_speed, v_min, v_max, format, power);
     RETFLOAT(f);
 }
 APIFUNC_END
@@ -278,7 +283,7 @@ struct cl_stylevar_entry *stylevarlist()
 
 APIFUNC(pushstylevar)
 {
-    cl_object whichvar = POPARG(asObject, ECL_NIL);
+    cl_object whichvar = POPARG(as_object, ECL_NIL);
     if (ecl_keywordp(whichvar)) {
         struct cl_stylevar_entry *list = stylevarlist();
         int i;
@@ -288,7 +293,7 @@ APIFUNC(pushstylevar)
             }
         }
         if (i < ImGuiStyleVar_COUNT) {
-            cl_object lispval = POPARG(asObject, ECL_NIL);
+            cl_object lispval = POPARG(as_object, ECL_NIL);
             ImVec2 vecval(0, 0);
             if (ecl_imvec2_p(lispval, vecval)) {
                 if (list[i].type == STYLEVAR_TYPE_IMVEC2) {
@@ -317,22 +322,32 @@ APIFUNC_END
 
 APIFUNC(popstylevar)
 {
-    int count = POPARG(asInt, 1);
+    int count = POPARG(as_int, 1);
     ImGui::PopStyleVar(count);
 }
 APIFUNC_END
 
 APIFUNC(columns)
 {
-    // count int
-    // id string
-    // border bool
+    int count = POPARG(as_int, 1);
+    const char *id = POPARG(as_text, NULL);
+    bool border = POPARG(as_bool, true);
+    ImGui::Columns(count, id, border);
 }
 APIFUNC_END
 
 APIFUNC(pushid)
 {
-    // id (string or int)
+    cl_object id = POPARG(as_object, ECL_NIL);
+    if (ecl_realp(id)) {
+        int idint = as_int(id);
+        ImGui::PushID(idint);
+    } else if (ecl_stringp(id)) {
+        const char *idstring = as_text(id);
+        ImGui::PushID(idstring);
+    } else {
+        FEerror("ID must be of type (OR STRING FIXNUM)", 0);
+    }
 }
 APIFUNC_END
 
@@ -356,12 +371,14 @@ APIFUNC_END
 
 APIFUNC(inputfloat)
 {
-    // label string
-    // v *float
-    // step float
-    // step-fast float
-    // format string
-    // flags ImGuiInputTextFlags
+    const char *label = POPARG(as_text, "label");
+    float v = POPARG(as_float, 0.0F);
+    float step = POPARG(as_float, 0.0F);
+    float step_fast = POPARG(as_float, 0.0F);
+    const char *format = POPARG(as_text, "%.3f");
+    int flags = POPARG(as_int, 0);
+    ImGui::InputFloat(label, &v, step, step_fast, format, flags);
+    RETFLOAT(v);
 }
 APIFUNC_END
 
