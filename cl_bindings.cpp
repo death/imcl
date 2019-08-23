@@ -3,6 +3,8 @@
 
 // Support
 
+#define LENGTHOF(array) (sizeof(array) / sizeof((array)[0]))
+
 static const char* as_text(cl_object obj)
 {
     return ecl_base_string_pointer_safe(si_coerce_to_base_string(cl_princ_to_string(obj)));
@@ -48,6 +50,48 @@ static cl_object as_object(cl_object obj)
     ecl_return1(ecl_process_env(), result);     \
     }
 
+// Translating keywords to enum values
+
+struct keyword_enum_descriptor
+{
+    const char *keyword_name;
+    int value;
+};
+
+int keyword_enum_value(cl_object keyword,
+                       struct keyword_enum_descriptor *descriptors,
+                       int size)
+{
+    if (!ecl_keywordp(keyword)) {
+        FEerror("object supplied is not a keyword", 0);
+    }
+    for (int i = 0; i < size; i++) {
+        if (ecl_equal(ecl_make_keyword(descriptors[i].keyword_name), keyword)) {
+            return descriptors[i].value;
+        }
+    }
+    FEerror("keyword not in enum descriptors list", 0);
+    return 0;
+}
+
+int flags_enum_value(cl_object flags, struct keyword_enum_descriptor *descriptors, int size)
+{
+    if (ecl_keywordp(flags)) {
+        return keyword_enum_value(flags, descriptors, size);
+    } else if (cl_consp(flags) != ECL_NIL) {
+        int value = 0;
+        while (cl_consp(flags) != ECL_NIL) {
+            cl_object item = cl_car(flags);
+            value |= keyword_enum_value(item, descriptors, size);
+            flags = cl_cdr(flags);
+        }
+        return value;
+    } else {
+        FEerror("expected keyword or list of keywords", 0);
+        return 0;
+    }
+}
+
 // Convenience
 
 bool ecl_imvec2_p(cl_object object, ImVec2 & result)
@@ -76,6 +120,29 @@ bool ecl_imvec2_p(cl_object object, ImVec2 & result)
     return true;
 }
 
+ImVec2 as_imvec2(cl_object obj)
+{
+    ImVec2 imvec(0, 0);
+    ecl_imvec2_p(obj, imvec);
+    return imvec;
+}
+
+struct keyword_enum_descriptor imguicond[] = {
+    {"ALWAYS", ImGuiCond_Always},
+    {"ONCE", ImGuiCond_Once},
+    {"FIRST-USE-EVER", ImGuiCond_FirstUseEver},
+    {"APPEARING", ImGuiCond_Appearing},
+};
+
+ImGuiCond as_imguicond(cl_object obj)
+{
+    ImGuiCond cond = ImGuiCond_Always;
+    if (obj != ECL_NIL) {
+        cond = keyword_enum_value(obj, imguicond, LENGTHOF(imguicond));
+    }
+    return cond;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -102,12 +169,8 @@ APIFUNC_END
 APIFUNC(button)
 {
     const char *label = POPARG(as_text, "Button");
-    cl_object size = POPARG(as_object, ECL_NIL);
-
-    ImVec2 sz(0, 0);
-    ecl_imvec2_p(size, sz);
-
-    bool ret = ImGui::Button(label, sz);
+    ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+    bool ret = ImGui::Button(label, size);
     RETBOOL(ret);
 }
 APIFUNC_END
@@ -382,6 +445,14 @@ APIFUNC(inputfloat)
 }
 APIFUNC_END
 
+APIFUNC(setnextwindowsize)
+{
+    ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+    ImGuiCond cond = POPARG(as_imguicond, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(size, cond);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -417,4 +488,5 @@ void cl_define_bindings()
     define("align-text-to-frame-padding", clapi_aligntexttoframepadding);
     define("next-column", clapi_nextcolumn);
     define("input-float", clapi_inputfloat);
+    define("set-next-window-size", clapi_setnextwindowsize);
 }
