@@ -165,6 +165,97 @@
       (columns 1)
       (separator))))
 
+;; Inspector
+
+(defmacro with-inspector-node (name &body forms)
+  (let ((node-open (gensym)))
+    `(progn
+       (align-text-to-frame-padding)
+       (let ((,node-open (tree-node ,name)))
+         (unwind-protect
+              (when ,node-open
+                (unwind-protect
+                     (progn ,@forms)
+                  (tree-pop)))
+           (next-column)
+           (next-column))))))
+
+(defun inspector-package-node (package)
+  (inspector-symbols-node package)
+  (inspector-special-variables-node package)
+  (inspector-functions-node package)
+  (inspector-macros-node package)
+  (inspector-classes-node package))
+
+(defun inspector-symbols-node (package)
+  (with-inspector-node "Symbols"
+    (do-external-symbols (symbol package)
+      (with-id (symbol-name symbol)
+        (with-inspector-node (symbol-name symbol))))))
+
+(defun inspector-special-variables-node (package)
+  (with-inspector-node "Special Variables"
+    (do-external-symbols (symbol package)
+      (when (c::special-variable-p symbol)
+        (with-id (symbol-name symbol)
+          (with-inspector-node (symbol-name symbol)))))))
+
+(defun inspector-functions-node (package)
+  (with-inspector-node "Functions"
+    (do-external-symbols (symbol package)
+      (when (and (fboundp symbol)
+                 (not (special-operator-p symbol))
+                 (null (macro-function symbol)))
+        (with-id (symbol-name symbol)
+          (with-inspector-node (symbol-name symbol)))))))
+
+(defun inspector-macros-node (package)
+  (with-inspector-node "Macros"
+    (do-external-symbols (symbol package)
+      (when (and (fboundp symbol)
+                 (or (special-operator-p symbol)
+                     (macro-function symbol)))
+        (with-id (symbol-name symbol)
+          (with-inspector-node (symbol-name symbol)))))))
+
+(defun inspector-classes-node (package)
+  (with-inspector-node "Classes"
+    (do-external-symbols (symbol package)
+      (let ((class (find-class symbol nil)))
+        (when class
+          (with-id (symbol-name symbol)
+            (with-inspector-node (symbol-name symbol))))))))
+
+(defun window-inspector ()
+  (set-next-window-size '(430 450) :first-use-ever)
+  (window "Inspector"
+    (with-style (:frame-padding '(2 2))
+      (columns 2)
+      (separator)
+      (dolist (package (list-all-packages))
+        (with-id (package-name package)
+          (align-text-to-frame-padding)
+          (let ((node-open (tree-node (package-name package))))
+            (next-column)
+            (align-text-to-frame-padding)
+            (text (or (documentation package 't) ""))
+            (next-column)
+            (when node-open
+              (inspector-package-node package)
+              (tree-pop)))))
+      (columns 1)
+      (separator))))
+
+(defun window-package-inspector (package)
+  (set-next-window-size '(430 450) :first-use-ever)
+  (window (format nil "Inspector - Package ~A" (package-name package))
+    (with-style (:frame-padding '(2 2))
+      (columns 2)
+      (separator)
+      (inspector-package-node package)
+      (columns 1)
+      (separator))))
+
 ;; Test
 
 (defun window-test ()
@@ -175,7 +266,7 @@
 
 (defun user-tick ()
   (with-style (:window-rounding 4.0 :alpha 0.9)
-    (window-property-editor)))
+    (window-package-inspector (find-package "CL"))))
 
 ;; Entry points
 
