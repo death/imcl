@@ -453,6 +453,35 @@ APIFUNC(setnextwindowsize)
 }
 APIFUNC_END
 
+APIFUNC(beginchild)
+{
+    const char *id = POPARG(as_text, "child");
+    ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+    bool border = POPARG(as_bool, false);
+    // TODO: flags arg
+    ImGuiWindowFlags flags = 0;
+    bool ret = ImGui::BeginChild(id, size, border, flags);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(endchild)
+{
+    ImGui::EndChild();
+}
+APIFUNC_END
+
+APIFUNC(selectable)
+{
+    const char *label = POPARG(as_text, "selectable");
+    bool selected = POPARG(as_bool, false);
+    ImGuiSelectableFlags flags = 0;
+    ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+    bool ret = ImGui::Selectable(label, selected, flags, size);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -489,4 +518,7 @@ void cl_define_bindings()
     define("next-column", clapi_nextcolumn);
     define("input-float", clapi_inputfloat);
     define("set-next-window-size", clapi_setnextwindowsize);
+    define("begin-child", clapi_beginchild);
+    define("end-child", clapi_endchild);
+    define("selectable", clapi_selectable);
 }

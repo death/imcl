@@ -172,59 +172,80 @@
     `(progn
        (align-text-to-frame-padding)
        (let ((,node-open (tree-node ,name)))
-         (unwind-protect
-              (when ,node-open
-                (unwind-protect
-                     (progn ,@forms)
-                  (tree-pop)))
-           (next-column)
-           (next-column))))))
+         (when ,node-open
+           (unwind-protect
+                (progn ,@forms)
+             (tree-pop)))))))
+
+(defvar *inspector-selection-category* nil)
+
+(defvar *inspector-selection-object* nil)
+
+(defun inspector-node-external-symbols-category (category predicate package)
+  (with-inspector-node (category-label category)
+    (do-external-symbols (symbol package)
+      (when (funcall predicate symbol)
+        (with-id (symbol-name symbol)
+          (when (selectable (symbol-name symbol)
+                            (and (eq *inspector-selection-category* category)
+                                 (eq *inspector-selection-object* symbol)))
+            (setf *inspector-selection-category* category)
+            (setf *inspector-selection-object* symbol)))))))
+
+(defun category-label (category)
+  (substitute #\Space #\- (format nil "~:(~A~)" category)))
 
 (defun inspector-package-node (package)
   (inspector-symbols-node package)
   (inspector-special-variables-node package)
-  (inspector-functions-node package)
-  (inspector-macros-node package)
+  (inspector-operators-node package)
   (inspector-classes-node package))
 
 (defun inspector-symbols-node (package)
-  (with-inspector-node "Symbols"
-    (do-external-symbols (symbol package)
-      (with-id (symbol-name symbol)
-        (with-inspector-node (symbol-name symbol))))))
+  (inspector-node-external-symbols-category 'symbols (constantly t) package))
 
 (defun inspector-special-variables-node (package)
-  (with-inspector-node "Special Variables"
-    (do-external-symbols (symbol package)
-      (when (c::special-variable-p symbol)
-        (with-id (symbol-name symbol)
-          (with-inspector-node (symbol-name symbol)))))))
+  (inspector-node-external-symbols-category 'special-variables #'c::special-variable-p package))
 
-(defun inspector-functions-node (package)
-  (with-inspector-node "Functions"
-    (do-external-symbols (symbol package)
-      (when (and (fboundp symbol)
-                 (not (special-operator-p symbol))
-                 (null (macro-function symbol)))
-        (with-id (symbol-name symbol)
-          (with-inspector-node (symbol-name symbol)))))))
+(defun operator-p (object)
+  (and (symbolp object)
+       (fboundp object)))
 
-(defun inspector-macros-node (package)
-  (with-inspector-node "Macros"
-    (do-external-symbols (symbol package)
-      (when (and (fboundp symbol)
-                 (or (special-operator-p symbol)
-                     (macro-function symbol)))
-        (with-id (symbol-name symbol)
-          (with-inspector-node (symbol-name symbol)))))))
+(defun inspector-operators-node (package)
+  (inspector-node-external-symbols-category 'operators #'operator-p package))
+
+(defun class-p (object)
+  (and (symbolp object)
+       (find-class object nil)))
 
 (defun inspector-classes-node (package)
-  (with-inspector-node "Classes"
-    (do-external-symbols (symbol package)
-      (let ((class (find-class symbol nil)))
-        (when class
-          (with-id (symbol-name symbol)
-            (with-inspector-node (symbol-name symbol))))))))
+  (inspector-node-external-symbols-category 'classes #'class-p package))
+
+(defgeneric inspector-object-view* (category object))
+
+(defmethod inspector-object-view* (category object)
+  (declare (ignore category))
+  (text (with-output-to-string (out)
+          (describe object out))))
+
+(defmethod inspector-object-view* ((category null) (object null))
+  (text "Select an object to inspect."))
+
+(defun inspector-object-view ()
+  (inspector-object-view* *inspector-selection-category*
+                          *inspector-selection-object*))
+
+(defun window-package-inspector (package)
+  (set-next-window-size '(430 450) :first-use-ever)
+  (window (format nil "Inspector - Package ~A" (package-name package))
+    (with-style (:frame-padding '(2 2))
+      (begin-child "Tree" (list 200 0))
+      (inspector-package-node package)
+      (end-child)
+      (same-line)
+      (begin-child "Object")
+      (inspector-object-view)
+      (end-child))))
 
 (defun window-inspector ()
   (set-next-window-size '(430 450) :first-use-ever)
@@ -243,16 +264,6 @@
             (when node-open
               (inspector-package-node package)
               (tree-pop)))))
-      (columns 1)
-      (separator))))
-
-(defun window-package-inspector (package)
-  (set-next-window-size '(430 450) :first-use-ever)
-  (window (format nil "Inspector - Package ~A" (package-name package))
-    (with-style (:frame-padding '(2 2))
-      (columns 2)
-      (separator)
-      (inspector-package-node package)
       (columns 1)
       (separator))))
 
