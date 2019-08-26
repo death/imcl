@@ -2,8 +2,35 @@
 
 (require :asdf)
 (load "~/quicklisp/setup.lisp")
+(setf ql:*local-project-directories*
+      (append ql:*local-project-directories*
+              (list (ql:qmerge "third-party/"))))
 (ql:quickload "swank")
 (swank:create-server :port 4242 :dont-close t)
+
+;; Evaluate things in the top level process
+
+(defvar *top-level-process*
+  (find 'si:top-level (mp:all-processes) :key #'mp:process-name))
+
+(defvar *top-level-eval-mailbox*
+  (mp:make-mailbox))
+
+(defmacro eval-in-top-level (&body forms)
+  `(progn
+     (mp:interrupt-process *top-level-process*
+                           (lambda ()
+                             (mp:mailbox-send *top-level-eval-mailbox*
+                                              (multiple-value-list (progn ,@forms)))))
+     (values-list (mp:mailbox-read *top-level-eval-mailbox*))))
+
+;; GL environment
+
+(defun setup-gl-environment ()
+  (ql:quickload "cl-opengl")
+  (ql:quickload "cl-glfw3")
+  (set (find-symbol "*WINDOW*" "GLFW") *glfw-window*)
+  t)
 
 ;; Convenience macros
 

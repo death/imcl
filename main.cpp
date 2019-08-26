@@ -125,6 +125,10 @@ int main(int argc, char **argv)
 
     cl_define_bindings();
 
+    cl_object window_cl = ecl_make_pointer(window);
+    ecl_shadow(ecl_read_from_cstring("*glfw-window*"), ecl_current_package());
+    cl_set(ecl_read_from_cstring("*glfw-window*"), window_cl);
+
     cl_eval(c_string_to_object("(load \"main\")"));
     cl_eval(c_string_to_object("(init)"));
 
