@@ -99,13 +99,17 @@
          `(progn ,@forms))
         (t
          (let ((varname (pop properties))
-               (varval (pop properties)))
-           `(progn
-              (push-style-color ,varname ,varval)
-              (unwind-protect
-                   (with-style-color (,@properties)
-                     ,@forms)
-                (pop-style-color)))))))
+               (varvalform (pop properties)))
+           (let ((varval (gensym)))
+             `(let ((,varval ,varvalform))
+                (push-style-color ,varname
+                                  (if (keywordp ,varval)
+                                      (color ,varval)
+                                      ,varval))
+                (unwind-protect
+                     (with-style-color (,@properties)
+                       ,@forms)
+                  (pop-style-color))))))))
 
 (defmacro with-id (id &body forms)
   `(progn
@@ -123,7 +127,7 @@
                    collect form
                    collect `(same-line)))))))
 
-(defmacro with-child ((name &rest more-args) &body forms)
+(defmacro child ((name &rest more-args) &body forms)
   `(progn
      (begin-child ,name ,@more-args)
      (unwind-protect
@@ -321,10 +325,10 @@
   (set-next-window-size '(430 450) :first-use-ever)
   (window (format nil "Inspector - Package ~A" (package-name package))
     (with-style (:frame-padding '(2 2))
-      (with-child ("Tree" (list 200 0))
+      (child ("Tree" (list 200 0))
         (inspector-package-node package))
       (same-line)
-      (with-child ("Object")
+      (child ("Object")
         (inspector-object-view)))))
 
 (defun window-inspector ()
@@ -372,7 +376,7 @@
 
 (defun window-error-report (condition)
   (window "Lisp error"
-    (with-style-color (:text (color :red))
+    (with-style-color (:text :red)
       (text (format nil "A Lisp error of type ~S was encountered"
                     (type-of condition))))
     (text (princ-to-string condition))
