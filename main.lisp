@@ -362,9 +362,12 @@
   (window "Test"
     (text "This is a test")))
 
-;; Entry points
+;; Apps
 
-(defun init ())
+;; For lack of a better name, I call them apps.  Currently they are
+;; composed of an entry point, which is a function that runs every
+;; tick, and a UI state, which begins as "normal" but can transition
+;; into "error" in case an error escapes the app.
 
 (defstruct app
   entry-point
@@ -402,12 +405,21 @@
       (setf (app-ui-state *current-app*)
             '(:normal)))))
 
-(defun tick ()
-  (with-simple-restart (return-from-tick "Return from TICK")
+(defun app-tick ()
+  (with-simple-restart (return-from-app-tick "Return from APP-TICK")
     (dolist (*current-app* *apps*)
       (ecase (car (app-ui-state *current-app*))
         (:normal
          (with-error-reporting
            (funcall (app-entry-point *current-app*))))
         (:error
-         (window-error-report (cadr *ui-state*)))))))
+         (window-error-report (cadr (app-ui-state *current-app*))))))))
+
+;; Entry points
+
+(defun init ()
+  "INIT runs right after this file is loaded.")
+
+(defun tick ()
+  "TICK runs on each iteration of the UI loop."
+  (app-tick))
