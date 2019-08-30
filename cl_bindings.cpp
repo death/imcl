@@ -541,6 +541,7 @@ APIFUNC(selectable)
 {
     const char *label = POPARG(as_text, "selectable");
     bool selected = POPARG(as_bool, false);
+    // TODO: flags arg
     ImGuiSelectableFlags flags = 0;
     ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
     bool ret = ImGui::Selectable(label, selected, flags, size);
