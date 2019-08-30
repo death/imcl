@@ -32,6 +32,41 @@
   (set (find-symbol "*WINDOW*" "GLFW") *glfw-window*)
   t)
 
+;; Colors
+
+(defvar *named-colors* nil)
+
+(defun rgb-to-bgra (value)
+  (let ((result #xFF000000))
+    (setf (ldb (byte 8 0) result) (ldb (byte 8 16) value))
+    (setf (ldb (byte 8 8) result) (ldb (byte 8 8) value))
+    (setf (ldb (byte 8 16) result) (ldb (byte 8 0) value))
+    result))
+
+(defun named-colors-init ()
+  (load "colors")
+  (let ((table (make-hash-table)))
+    (loop for (name value) on *named-colors-plist* by #'cddr
+          do (setf (gethash name table)
+                   (rgb-to-bgra value)))
+    table))
+
+(defun color (value &optional alpha)
+  (let ((value (color-noalpha value)))
+    (when alpha
+      (setf (ldb (byte 8 24) value) alpha))
+    value))
+
+(defun color-noalpha (value)
+  (etypecase value
+    (keyword
+     (unless *named-colors*
+       (setf *named-colors* (named-colors-init)))
+     (or (gethash value *named-colors*)
+         (error "There is no color named ~S." value)))
+    (integer
+     value)))
+
 ;; Convenience macros
 
 (defmacro window (name &body forms)
@@ -59,6 +94,19 @@
                      ,@forms)
                 (pop-style-var)))))))
 
+(defmacro with-style-color ((&rest properties) &body forms)
+  (cond ((null properties)
+         `(progn ,@forms))
+        (t
+         (let ((varname (pop properties))
+               (varval (pop properties)))
+           `(progn
+              (push-style-color ,varname ,varval)
+              (unwind-protect
+                   (with-style-color (,@properties)
+                     ,@forms)
+                (pop-style-color)))))))
+
 (defmacro with-id (id &body forms)
   `(progn
      (push-id ,id)
@@ -74,6 +122,13 @@
              (loop for form in forms
                    collect form
                    collect `(same-line)))))))
+
+(defmacro with-child ((name &rest more-args) &body forms)
+  `(progn
+     (begin-child ,name ,@more-args)
+     (unwind-protect
+          (progn ,@forms)
+       (end-child))))
 
 ;; Calculator
 
@@ -266,13 +321,11 @@
   (set-next-window-size '(430 450) :first-use-ever)
   (window (format nil "Inspector - Package ~A" (package-name package))
     (with-style (:frame-padding '(2 2))
-      (begin-child "Tree" (list 200 0))
-      (inspector-package-node package)
-      (end-child)
+      (with-child ("Tree" (list 200 0))
+        (inspector-package-node package))
       (same-line)
-      (begin-child "Object")
-      (inspector-object-view)
-      (end-child))))
+      (with-child ("Object")
+        (inspector-object-view)))))
 
 (defun window-inspector ()
   (set-next-window-size '(430 450) :first-use-ever)
@@ -310,11 +363,27 @@
 
 (defun init ())
 
+(defvar *ui-state* '(:normal))
+
+(defmacro with-error-reporting (&body forms)
+  `(handler-case (progn ,@forms)
+     (error (e)
+       (setf *ui-state* (list :error e)))))
+
+(defun window-error-report (condition)
+  (window "Lisp error"
+    (with-style-color (:text (color :red))
+      (text (format nil "A Lisp error of type ~S was encountered"
+                    (type-of condition))))
+    (text (princ-to-string condition))
+    (when (button "Retry")
+      (setf *ui-state* '(:normal)))))
+
 (defun tick ()
-  ;; TODO: Find out a way to have an nonblocking debugger using ECL.
-  (handler-case
-      (user-tick)
-    (error (e)
-      (set-next-window-size '(430 450) :first-use-ever)
-      (window "Lisp error"
-        (text (format nil "~A~%" e))))))
+  (with-simple-restart (return-from-tick "Return from TICK")
+    (ecase (car *ui-state*)
+      (:normal
+       (with-error-reporting
+         (user-tick)))
+      (:error
+       (window-error-report (cadr *ui-state*))))))

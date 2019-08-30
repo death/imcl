@@ -15,6 +15,11 @@ static int as_int(cl_object obj)
     return ecl_to_int32_t(ecl_truncate1(obj));
 }
 
+static unsigned int as_uint(cl_object obj)
+{
+    return ecl_to_uint32_t(ecl_truncate1(obj));
+}
+
 static float as_float(cl_object obj)
 {
     return ecl_to_float(obj);
@@ -142,6 +147,67 @@ ImGuiCond as_imguicond(cl_object obj)
     }
     return cond;
 }
+
+struct keyword_enum_descriptor imguicol[] = {
+    {"TEXT", ImGuiCol_Text},
+    {"TEXT-DISABLED", ImGuiCol_TextDisabled},
+    {"WINDOW-BG", ImGuiCol_WindowBg},
+    {"CHILD-BG", ImGuiCol_ChildBg},
+    {"POPUP-BG", ImGuiCol_PopupBg},
+    {"BORDER", ImGuiCol_Border},
+    {"BORDER-SHADOW", ImGuiCol_BorderShadow},
+    {"FRAME-BG", ImGuiCol_FrameBg},
+    {"FRAME-BG-HOVERED", ImGuiCol_FrameBgHovered},
+    {"FRAME-BG-ACTIVE", ImGuiCol_FrameBgActive},
+    {"TITLE-BG", ImGuiCol_TitleBg},
+    {"TITLE-BG-ACTIVE", ImGuiCol_TitleBgActive},
+    {"TITLE-BG-COLLAPSED", ImGuiCol_TitleBgCollapsed},
+    {"MENUBAR-BG", ImGuiCol_MenuBarBg}, // Unlike imgui we say "menubar" not "menu bar"
+    {"SCROLLBAR-BG", ImGuiCol_ScrollbarBg},
+    {"SCROLLBAR-GRAB", ImGuiCol_ScrollbarGrab},
+    {"SCROLLBAR-GRAB-HOVERED", ImGuiCol_ScrollbarGrabHovered},
+    {"SCROLLBAR-GRAB-ACTIVE", ImGuiCol_ScrollbarGrabActive},
+    {"CHECKMARK", ImGuiCol_CheckMark}, // Unlike imgui we say "checkmark" not "check mark"
+    {"SLIDER-GRAB", ImGuiCol_SliderGrab},
+    {"SLIDER-GRAB-ACTIVE", ImGuiCol_SliderGrabActive},
+    {"BUTTON", ImGuiCol_Button},
+    {"BUTTON-HOVERED", ImGuiCol_ButtonHovered},
+    {"BUTTON-ACTIVE", ImGuiCol_ButtonActive},
+    {"HEADER", ImGuiCol_Header},
+    {"HEADER-HOVERED", ImGuiCol_HeaderHovered},
+    {"HEADER-ACTIVE", ImGuiCol_HeaderActive},
+    {"SEPARATOR", ImGuiCol_Separator},
+    {"SEPARATOR-HOVERED", ImGuiCol_SeparatorHovered},
+    {"SEPARATOR-ACTIVE", ImGuiCol_SeparatorActive},
+    {"RESIZE-GRIP", ImGuiCol_ResizeGrip},
+    {"RESIZE-GRIP-HOVERED", ImGuiCol_ResizeGripHovered},
+    {"RESIZE-GRIP-ACTIVE", ImGuiCol_ResizeGripActive},
+    {"TAB", ImGuiCol_Tab},
+    {"TAB-HOVERED", ImGuiCol_TabHovered},
+    {"TAB-ACTIVE", ImGuiCol_TabActive},
+    {"TAB-UNFOCUSED", ImGuiCol_TabUnfocused},
+    {"TAB-UNFOCUSED-ACTIVE", ImGuiCol_TabUnfocusedActive},
+    {"PLOT-LINES", ImGuiCol_PlotLines},
+    {"PLOT-LINES-HOVERED", ImGuiCol_PlotLinesHovered},
+    {"PLOT-HISTOGRAM", ImGuiCol_PlotHistogram},
+    {"PLOT-HISTOGRAM-HOVERED", ImGuiCol_PlotHistogramHovered},
+    {"TEXT-SELECTED-BG", ImGuiCol_TextSelectedBg},
+    {"DRAG-DROP-TARGET", ImGuiCol_DragDropTarget},
+    {"NAV-HIGHLIGHT", ImGuiCol_NavHighlight},
+    {"NAV-WINDOWING-HIGHLIGHT", ImGuiCol_NavWindowingHighlight},
+    {"NAV-WINDOWING-DIM-BG", ImGuiCol_NavWindowingDimBg},
+    {"MODAL-WINDOW-DIM-BG", ImGuiCol_ModalWindowDimBg},
+};
+
+ImGuiCol as_imguicol(cl_object obj)
+{
+    ImGuiCol col = ImGuiCol_Text;
+    if (obj != ECL_NIL) {
+        col = keyword_enum_value(obj, imguicol, LENGTHOF(imguicol));
+    }
+    return col;
+}
+
 
 // The actual bindings
 
@@ -482,6 +548,21 @@ APIFUNC(selectable)
 }
 APIFUNC_END
 
+APIFUNC(pushstylecolor)
+{
+    ImGuiCol idx = POPARG(as_imguicol, ImGuiCol_Text);
+    ImU32 col = POPARG(as_uint, 0);
+    ImGui::PushStyleColor(idx, col);
+}
+APIFUNC_END
+
+APIFUNC(popstylecolor)
+{
+    int count = POPARG(as_int, 1);
+    ImGui::PopStyleColor(count);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -521,4 +602,6 @@ void cl_define_bindings()
     define("begin-child", clapi_beginchild);
     define("end-child", clapi_endchild);
     define("selectable", clapi_selectable);
+    define("push-style-color", clapi_pushstylecolor);
+    define("pop-style-color", clapi_popstylecolor);
 }
