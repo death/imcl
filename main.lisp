@@ -236,18 +236,19 @@
             (text "my sailor is rich")
             (next-column)
             (when node-open
-              (dotimes (i 8)
-                (with-id i
-                  (align-text-to-frame-padding)
-                  (next-column)
-                  (set-next-item-width -1)
-                  (if (> i 5)
-                      (setf (aref *inspector-float-values* i)
-                            (input-float "##value" (aref *inspector-float-values* i) 1.0))
-                      (setf (aref *inspector-float-values* i)
-                            (drag-float "##value" (aref *inspector-float-values* i))))
-                  (next-column)))
-              (tree-pop)))))
+              (unwind-protect
+                   (dotimes (i 8)
+                     (with-id i
+                       (align-text-to-frame-padding)
+                       (next-column)
+                       (set-next-item-width -1)
+                       (if (> i 5)
+                           (setf (aref *property-editor-float-values* i)
+                                 (input-float "##value" (aref *property-editor-float-values* i) 1.0))
+                           (setf (aref *property-editor-float-values* i)
+                                 (drag-float "##value" (aref *property-editor-float-values* i))))
+                       (next-column)))
+                (tree-pop))))))
       (columns 1)
       (separator))))
 
@@ -351,28 +352,45 @@
       (columns 1)
       (separator))))
 
+(defun app-cl-package-inspector ()
+  (with-style (:window-rounding 4.0 :alpha 0.9)
+    (window-package-inspector (find-package "CL"))))
+
 ;; Test
 
 (defun window-test ()
   (window "Test"
     (text "This is a test")))
 
-;; User tick
-
-(defun user-tick ()
-  (with-style (:window-rounding 4.0 :alpha 0.9)
-    (window-package-inspector (find-package "CL"))))
-
 ;; Entry points
 
 (defun init ())
 
-(defvar *ui-state* '(:normal))
+(defstruct app
+  entry-point
+  (ui-state '(:normal)))
+
+(defvar *apps* '())
+
+(defun app-add (entry-point)
+  (push (make-app :entry-point entry-point) *apps*)
+  t)
+
+(defun app-remove (entry-point)
+  (setf *apps*
+        (remove-if (lambda (app)
+                     (eql (app-entry-point app) entry-point))
+                   *apps*
+                   :count 1))
+  t)
+
+(defvar *current-app* nil)
 
 (defmacro with-error-reporting (&body forms)
   `(handler-case (progn ,@forms)
      (error (e)
-       (setf *ui-state* (list :error e)))))
+       (setf (app-ui-state *current-app*)
+             (list :error e)))))
 
 (defun window-error-report (condition)
   (window "Lisp error"
@@ -381,13 +399,15 @@
                     (type-of condition))))
     (text (princ-to-string condition))
     (when (button "Retry")
-      (setf *ui-state* '(:normal)))))
+      (setf (app-ui-state *current-app*)
+            '(:normal)))))
 
 (defun tick ()
   (with-simple-restart (return-from-tick "Return from TICK")
-    (ecase (car *ui-state*)
-      (:normal
-       (with-error-reporting
-         (user-tick)))
-      (:error
-       (window-error-report (cadr *ui-state*))))))
+    (dolist (*current-app* *apps*)
+      (ecase (car (app-ui-state *current-app*))
+        (:normal
+         (with-error-reporting
+           (funcall (app-entry-point *current-app*))))
+        (:error
+         (window-error-report (cadr *ui-state*)))))))
