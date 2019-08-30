@@ -129,6 +129,9 @@ int main(int argc, char **argv)
     ecl_shadow(ecl_read_from_cstring("*glfw-window*"), ecl_current_package());
     cl_set(ecl_read_from_cstring("*glfw-window*"), window_cl);
 
+    cl_object time_in_lisp_var = ecl_read_from_cstring("*time-in-lisp*");
+    cl_set(time_in_lisp_var, ecl_make_int32_t(0));
+
     cl_eval(c_string_to_object("(load \"main\")"));
     cl_eval(c_string_to_object("(init)"));
 
@@ -165,6 +168,7 @@ int main(int argc, char **argv)
             ImGui::ShowDemoWindow(&show_demo_window);
         }
 
+        double lisp_start_time = glfwGetTime();
         cl_env_ptr env = ecl_process_env();
         ECL_CATCH_ALL_BEGIN(env) {
             cl_eval(calltick);
@@ -176,6 +180,10 @@ int main(int argc, char **argv)
             ImGui::End();
         }
         ECL_CATCH_ALL_END;
+        double lisp_end_time = glfwGetTime();
+        double lisp_duration = lisp_end_time - lisp_start_time;
+        int time_in_lisp = (int)(lisp_duration * 1000000.0);
+        cl_set(time_in_lisp_var, ecl_make_int32_t(time_in_lisp));
 
         // Rendering
         ImGui::Render();

@@ -362,6 +362,80 @@
   (window "Test"
     (text "This is a test")))
 
+;; Metrics
+
+(defstruct metric
+  name
+  unit
+  query-function
+  window
+  counter
+  running-total)
+
+(defun metric-update (metric)
+  (let ((new-value (funcall (metric-query-function metric))))
+    (symbol-macrolet ((current-value (aref (metric-window metric)
+                                           (metric-counter metric))))
+      (decf (metric-running-total metric) current-value)
+      (incf (metric-running-total metric) new-value)
+      (setf current-value new-value)
+      (setf (metric-counter metric)
+            (mod (1+ (metric-counter metric))
+                 (metric-window-size metric))))))
+
+(defun metric-mean (metric)
+  (float
+   (/ (metric-running-total metric)
+      (metric-window-size metric))))
+
+(defun metric-window-size (metric)
+  (length (metric-window metric)))
+
+(defvar *metrics* '())
+
+(defun add-metric (&key name unit query-function window-size initial-value)
+  (setf initial-value (or initial-value 0))
+  (push (make-metric :name name
+                     :unit unit
+                     :query-function query-function
+                     :window (make-array window-size
+                                         :initial-element initial-value
+                                         :element-type '(unsigned-byte 32))
+                     :counter 0
+                     :running-total (* initial-value window-size))
+        *metrics*))
+
+(defun metrics-update ()
+  (dolist (metric *metrics*)
+    (metric-update metric)))
+
+(defun window-metrics ()
+  (metrics-update)
+  (window "Metrics"
+    (columns 2)
+    (dolist (metric *metrics*)
+      (text (format nil "~:(~A~) (~(~A~))"
+                    (metric-name metric)
+                    (metric-unit metric)))
+      (next-column)
+      (text (format nil "~,1F"
+                    (metric-mean metric)))
+      (next-column))))
+
+(defun app-metrics ()
+  (when (null *metrics*)
+    (add-metric :name 'time-in-lisp
+                :unit 'us
+                :query-function (lambda () *time-in-lisp*)
+                :window-size 1000
+                :initial-value *time-in-lisp*))
+  (window-metrics))
+
+(defun metrics-restart ()
+  (app-remove 'app-metrics)
+  (setf *metrics* '())
+  (app-add 'app-metrics))
+
 ;; Apps
 
 ;; For lack of a better name, I call them apps.  Currently they are
