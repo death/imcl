@@ -436,6 +436,33 @@
   (setf *metrics* '())
   (app-add 'app-metrics))
 
+;; Basic Widgets
+
+(defclass basic-widgets-model ()
+  ((button-toggle :initform nil :accessor bw-button-toggle)
+   (checkbox-toggle :initform nil :accessor bw-checkbox-toggle)
+   (radio-choice :initform 0 :accessor bw-radio-choice)))
+
+(defvar *basic-widgets-model*
+  (make-instance 'basic-widgets-model))
+
+(defun show-basic-widgets (&aux (model *basic-widgets-model*))
+  (window "Basic Widgets"
+    (text "This is a text widget")
+    (when (button "Click Me")
+      (setf (bw-button-toggle model)
+            (not (bw-button-toggle model))))
+    (when (bw-button-toggle model)
+      (same-line)
+      (text "Thanks for clicking me"))
+    (setf (bw-checkbox-toggle model)
+          (checkbox "Checkbox" (bw-checkbox-toggle model)))
+    (dotimes (i 3)
+      (when (radio (format nil "Radio ~D" i) (= (bw-radio-choice model) i))
+        (setf (bw-radio-choice model) i))
+      (when (< i 2)
+        (same-line)))))
+
 ;; Apps
 
 ;; For lack of a better name, I call them apps.  Currently they are
@@ -492,7 +519,8 @@
 ;; Entry points
 
 (defun init ()
-  "INIT runs right after this file is loaded.")
+  "INIT runs right after this file is loaded."
+  (app-add 'show-demo-window))
 
 (defun tick ()
   "TICK runs on each iteration of the UI loop."

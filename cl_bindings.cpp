@@ -564,6 +564,33 @@ APIFUNC(popstylecolor)
 }
 APIFUNC_END
 
+APIFUNC(showdemowindow)
+{
+    bool show = true;
+    ImGui::ShowDemoWindow(&show);
+    RETBOOL(show);
+}
+APIFUNC_END
+
+APIFUNC(checkbox)
+{
+    const char *label = POPARG(as_text, "checkbox");
+    bool v = POPARG(as_bool, false);
+    // TODO: what about the bool return value?
+    ImGui::Checkbox(label, &v);
+    RETBOOL(v);
+}
+APIFUNC_END
+
+APIFUNC(radio)
+{
+    const char *label = POPARG(as_text, "radio");
+    bool active = POPARG(as_bool, false);
+    bool pressed = ImGui::RadioButton(label, active);
+    RETBOOL(pressed);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -605,4 +632,7 @@ void cl_define_bindings()
     define("selectable", clapi_selectable);
     define("push-style-color", clapi_pushstylecolor);
     define("pop-style-color", clapi_popstylecolor);
+    define("show-demo-window", clapi_showdemowindow);
+    define("checkbox", clapi_checkbox);
+    define("radio", clapi_radio);
 }
