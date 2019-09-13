@@ -591,6 +591,21 @@ APIFUNC(radio)
 }
 APIFUNC_END
 
+APIFUNC(isitemhovered)
+{
+    // TODO: ImGuiHoveredFlags
+    bool hovered = ImGui::IsItemHovered();
+    RETBOOL(hovered);
+}
+APIFUNC_END
+
+APIFUNC(settooltip)
+{
+    const char *tip = POPARG(as_text, "tooltip");
+    ImGui::SetTooltip("%s", tip);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -635,4 +650,6 @@ void cl_define_bindings()
     define("show-demo-window", clapi_showdemowindow);
     define("checkbox", clapi_checkbox);
     define("radio", clapi_radio);
+    define("item-hovered-p", clapi_isitemhovered);
+    define("set-tooltip", clapi_settooltip);
 }
