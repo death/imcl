@@ -1,5 +1,55 @@
 // Meta TODO: create table and prioritize
 
+// Small tasks
+//
+//   Context creation and access
+//   Styles
+//   Windows
+//   Child Windows
+//   Widgets: Combo Box
+//   Widgets: Selectables
+//   Widgets: Value() helpers
+//   Tooltips
+//   Clipping
+//   Focus, Activation
+//   Clipboard Utilities
+//
+// Medium tasks
+//
+//   Main
+//   Content region
+//   Windows Scrolling
+//   Parameters stacks (shared)
+//   Parameters stacks (current window)
+//   ID stacks/scopes
+//   Widgets: Text
+//   Widgets: Main
+//   Widgets: Drags
+//   Widgets: Color Editor/Picker
+//   Widgets: List Boxes
+//   Widgets: Data Plotting
+//   Widgets: Menus
+//   Popups, Modals
+//   Columns
+//   Tab Bars, Tabs
+//   Logging/Capture
+//   Drag and Drop
+//   Color Utilities
+//
+// Large tasks
+//
+//   Windows Utilities
+//   Cursor/Layout
+//   Widgets: Sliders
+//   Widgets: Input with Keyboard
+//   Widgets: Trees
+//   Item/Widgets Utiltiies
+//   Miscellaneous Utilities
+//   Inputs Utilities
+//
+
+// ------------------------------------------------------------------------------------------------------------------------
+
 // Context creation and access
 
 // Each context create its own ImFontAtlas by default. You may
@@ -845,26 +895,3 @@ IMGUI_API void          CaptureMouseFromApp(bool want_capture_mouse_value = true
 
 IMGUI_API const char*   GetClipboardText();
 IMGUI_API void          SetClipboardText(const char* text);
-
-// Settings/.Ini Utilities
-
-// - The disk functions are automatically called if io.IniFilename != NULL (default is "imgui.ini").
-// - Set io.IniFilename to NULL to load/save manually. Read io.WantSaveIniSettings description about handling .ini saving manually.
-
-// call after CreateContext() and before the first call to NewFrame(). NewFrame() automatically calls LoadIniSettingsFromDisk(io.IniFilename).
-IMGUI_API void          LoadIniSettingsFromDisk(const char* ini_filename);
-// call after CreateContext() and before the first call to NewFrame() to provide .ini data from your own data source.
-IMGUI_API void          LoadIniSettingsFromMemory(const char* ini_data, size_t ini_size=0);
-// this is automatically called (if io.IniFilename is not empty) a few seconds after any modification that should be reflected in the .ini file (and also by DestroyContext).
-IMGUI_API void          SaveIniSettingsToDisk(const char* ini_filename);
-// return a zero-terminated string with the .ini data which you can save by your own mean. call when io.WantSaveIniSettings is set, then save data by your own mean and clear io.WantSaveIniSettings.
-IMGUI_API const char*   SaveIniSettingsToMemory(size_t* out_ini_size = NULL);
-
-// Memory Allocators
-
-// - All those functions are not reliant on the current context.
-// - If you reload the contents of imgui.cpp at runtime, you may need to call SetCurrentContext() + SetAllocatorFunctions() again because we use global storage for those.
-
-IMGUI_API void          SetAllocatorFunctions(void* (*alloc_func)(size_t sz, void* user_data), void (*free_func)(void* ptr, void* user_data), void* user_data = NULL);
-IMGUI_API void*         MemAlloc(size_t size);
-IMGUI_API void          MemFree(void* ptr);
