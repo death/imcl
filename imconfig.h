@@ -13,8 +13,20 @@
 
 #pragma once
 
+#include <assert.h>
+
+void imgui_ecl_assert_fail(const char *assertion,
+                           const char *file,
+                           unsigned int line,
+                           const char *function);
+
+#define imgui_ecl_assert(expr)                  \
+    (static_cast<bool>(expr)                    \
+     ? void(0)                                                          \
+     : imgui_ecl_assert_fail(#expr, __FILE__, __LINE__, __ASSERT_FUNCTION))
+
 //---- Define assertion handler. Defaults to calling assert().
-//#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
+#define IM_ASSERT(_EXPR)  imgui_ecl_assert(_EXPR)
 //#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under Windows.

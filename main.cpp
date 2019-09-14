@@ -40,6 +40,30 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+enum
+{
+    ERROR_STATE_MESSAGE_NCHARS = 512
+};
+
+struct error_state
+{
+    int show_error;
+    char message[ERROR_STATE_MESSAGE_NCHARS];
+};
+
+struct error_state g_error_state;
+
+void imgui_ecl_assert_fail(const char *assertion,
+                           const char *file,
+                           unsigned int line,
+                           const char *function)
+{
+    g_error_state.show_error = 1;
+    snprintf(g_error_state.message, ERROR_STATE_MESSAGE_NCHARS,
+             "Assertion failure in '%s' (%s:%d):\n%s",
+             function, file, line, assertion);
+}
+
 int main(int argc, char **argv)
 {
     cl_boot(argc, argv);
@@ -135,6 +159,9 @@ int main(int argc, char **argv)
 
     cl_object calltick = c_string_to_object("(tick)");
 
+    g_error_state.show_error = 0;
+    g_error_state.message[0] = '\0';
+
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -159,22 +186,34 @@ int main(int argc, char **argv)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        double lisp_start_time = glfwGetTime();
-        cl_env_ptr env = ecl_process_env();
-        ECL_CATCH_ALL_BEGIN(env) {
-            cl_eval(calltick);
+        if (!g_error_state.show_error) {
+            double lisp_start_time = glfwGetTime();
+            cl_env_ptr env = ecl_process_env();
+            ECL_CATCH_ALL_BEGIN(env) {
+                cl_eval(calltick);
+            }
+            ECL_CATCH_ALL_IF_CAUGHT {
+                g_error_state.show_error = 1;
+                snprintf(g_error_state.message, ERROR_STATE_MESSAGE_NCHARS,
+                         "An error was signaled by TICK.");
+            }
+            ECL_CATCH_ALL_END;
+            double lisp_end_time = glfwGetTime();
+            double lisp_duration = lisp_end_time - lisp_start_time;
+            int time_in_lisp = (int)(lisp_duration * 1000000.0);
+            cl_set(time_in_lisp_var, ecl_make_int32_t(time_in_lisp));
         }
-        ECL_CATCH_ALL_IF_CAUGHT {
-            if (ImGui::Begin("Lisp error")) {
-                ImGui::Text("An error was signaled by TICK");
+
+        if (g_error_state.show_error) {
+            if (ImGui::Begin("Error")) {
+                ImGui::Text("%s", g_error_state.message);
+                if (ImGui::Button("Retry")) {
+                    g_error_state.show_error = 0;
+                    g_error_state.message[0] = '\0';
+                }
             }
             ImGui::End();
         }
-        ECL_CATCH_ALL_END;
-        double lisp_end_time = glfwGetTime();
-        double lisp_duration = lisp_end_time - lisp_start_time;
-        int time_in_lisp = (int)(lisp_duration * 1000000.0);
-        cl_set(time_in_lisp_var, ecl_make_int32_t(time_in_lisp));
 
         // Rendering
         ImGui::Render();
