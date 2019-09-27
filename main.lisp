@@ -75,6 +75,13 @@
           ,@forms)
      (end)))
 
+(defmacro tooltip (&body forms)
+  `(unwind-protect
+        (progn
+          (begin-tooltip)
+          ,@forms)
+     (end-tooltip)))
+
 (defmacro group (&body forms)
   `(progn
      (begin-group)
@@ -462,6 +469,10 @@
     (dotimes (i 3)
       (when (radio (format nil "Radio ~D" i) (= (bw-radio-choice model) i))
         (setf (bw-radio-choice model) i))
+      (when (item-hovered-p)
+        (tooltip
+          (bullet-text
+           (aref #("First option" "Second option" "Third option") i))))
       (when (< i 2)
         (same-line)))))
 
