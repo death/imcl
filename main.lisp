@@ -141,6 +141,20 @@
           (progn ,@forms)
        (end-child))))
 
+(defmacro tab-bar (&body forms)
+  `(progn
+     (when (begin-tab-bar)
+       (unwind-protect
+            (progn ,@forms)
+         (end-tab-bar)))))
+
+(defmacro tab-item (label &body forms)
+  `(progn
+     (when (begin-tab-item ,label)
+       (unwind-protect
+            (progn ,@forms)
+         (end-tab-item)))))
+
 ;; Calculator
 
 (defvar *stack* '())
@@ -474,7 +488,12 @@
           (bullet-text
            (aref #("First option" "Second option" "Third option") i))))
       (when (< i 2)
-        (same-line)))))
+        (same-line)))
+    (tab-bar
+      (tab-item "Item 1"
+        (text "Content for first tab item"))
+      (tab-item "Item 2"
+        (text "Content for second tab item")))))
 
 ;; Clipboard test
 

@@ -634,6 +634,46 @@ APIFUNC(setclipboardtext)
 }
 APIFUNC_END
 
+APIFUNC(begintabbar)
+{
+    const char *id = POPARG(as_text, "tabid");
+    // TODO: flags arg
+    ImGuiTabBarFlags flags = 0;
+    bool ret = ImGui::BeginTabBar(id, flags);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(endtabbar)
+{
+    ImGui::EndTabBar();
+}
+APIFUNC_END
+
+APIFUNC(begintabitem)
+{
+    const char *label = POPARG(as_text, "tabitem");
+    // TODO: p_open arg
+    // TODO: flags arg
+    ImGuiTabItemFlags flags = 0;
+    bool ret = ImGui::BeginTabItem(label, NULL, flags);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(endtabitem)
+{
+    ImGui::EndTabItem();
+}
+APIFUNC_END
+
+APIFUNC(settabitemclosed)
+{
+    const char *label = POPARG(as_text, "label");
+    ImGui::SetTabItemClosed(label);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -684,4 +724,9 @@ void cl_define_bindings()
     define("end-tooltip", clapi_endtooltip);
     define("get-clipboard-text", clapi_getclipboardtext);
     define("set-clipboard-text", clapi_setclipboardtext);
+    define("begin-tab-bar", clapi_begintabbar);
+    define("end-tab-bar", clapi_endtabbar);
+    define("begin-tab-item", clapi_begintabitem);
+    define("end-tab-item", clapi_endtabitem);
+    define("set-tab-item-closed", clapi_settabitemclosed);
 }
