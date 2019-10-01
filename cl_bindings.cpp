@@ -43,6 +43,8 @@ static cl_object as_object(cl_object obj)
 
 #define RETBOOL(x) result = (x) ? ECL_T : ECL_NIL
 
+#define RETSTRING(x) result = ecl_make_simple_base_string((x), -1)
+
 #define APIFUNC(name)                                   \
     static cl_object clapi_ ## name(cl_narg nargs, ...) \
     {                                                   \
@@ -618,6 +620,20 @@ APIFUNC(endtooltip)
 }
 APIFUNC_END
 
+APIFUNC(getclipboardtext)
+{
+    const char *text = ImGui::GetClipboardText();
+    RETSTRING(text);
+}
+APIFUNC_END
+
+APIFUNC(setclipboardtext)
+{
+    const char *text = POPARG(as_text, "text");
+    ImGui::SetClipboardText(text);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -666,4 +682,6 @@ void cl_define_bindings()
     define("set-tooltip", clapi_settooltip);
     define("begin-tooltip", clapi_begintooltip);
     define("end-tooltip", clapi_endtooltip);
+    define("get-clipboard-text", clapi_getclipboardtext);
+    define("set-clipboard-text", clapi_setclipboardtext);
 }

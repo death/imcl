@@ -476,6 +476,21 @@
       (when (< i 2)
         (same-line)))))
 
+;; Clipboard test
+
+(defclass clipboard-test-model ()
+  ((candidates :initform '#1=("red" "green" "blue" . #1#)
+               :accessor ct-candidates)))
+
+(defvar *clipboard-test-model*
+  (make-instance 'clipboard-test-model))
+
+(defun show-clipboard-test (&aux (model *clipboard-test-model*))
+  (window "Clipboard test"
+    (text (format nil "Text in clipboard: [~A]" (get-clipboard-text)))
+    (when (button "Set clipboard text")
+      (set-clipboard-text (pop (ct-candidates model))))))
+
 ;; Apps
 
 ;; For lack of a better name, I call them apps.  Currently they are
