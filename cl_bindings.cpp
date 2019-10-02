@@ -674,6 +674,19 @@ APIFUNC(settabitemclosed)
 }
 APIFUNC_END
 
+APIFUNC(setitemdefaultfocus)
+{
+    ImGui::SetItemDefaultFocus();
+}
+APIFUNC_END
+
+APIFUNC(setkeyboardfocushere)
+{
+    int offset = POPARG(as_int, 0);
+    ImGui::SetKeyboardFocusHere(offset);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -729,4 +742,6 @@ void cl_define_bindings()
     define("begin-tab-item", clapi_begintabitem);
     define("end-tab-item", clapi_endtabitem);
     define("set-tab-item-closed", clapi_settabitemclosed);
+    define("set-item-default-focus", clapi_setitemdefaultfocus);
+    define("set-keyboard-focus-here", clapi_setkeyboardfocushere);
 }

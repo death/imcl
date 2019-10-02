@@ -4,13 +4,10 @@
 //
 //   Context creation and access
 //   Styles
-//   Windows
 //   Child Windows
 //   Widgets: Combo Box
 //   Widgets: Selectables
-//   Widgets: Value() helpers
 //   Clipping
-//   Focus, Activation
 //
 // Medium tasks
 //
@@ -126,20 +123,6 @@ IMGUI_API void          StyleColorsDark(ImGuiStyle* dst = NULL);
 IMGUI_API void          StyleColorsClassic(ImGuiStyle* dst = NULL);
 // best used with borders and a custom, thicker font
 IMGUI_API void          StyleColorsLight(ImGuiStyle* dst = NULL);
-
-// Windows
-
-// - Begin() = push window to the stack and start appending to it. End() = pop window from the stack.
-// - You may append multiple times to the same window during the same frame.
-// - Passing 'bool* p_open != NULL' shows a window-closing widget in the upper-right corner of the window,
-//   which clicking will set the boolean to false when clicked.
-// - Begin() return false to indicate the window is collapsed or fully clipped, so you may early out and omit submitting
-//   anything to the window. Always call a matching End() for each Begin() call, regardless of its return value!
-//   [this is due to legacy reason and is inconsistent with most other functions such as BeginMenu/EndMenu, BeginPopup/EndPopup, etc.
-//    where the EndXXX call should only be called if the corresponding BeginXXX function returned true.]
-// - Note that the bottom of window stack always contains a window called "Debug".
-IMGUI_API bool          Begin(const char* name, bool* p_open = NULL, ImGuiWindowFlags flags = 0);
-IMGUI_API void          End();
 
 // Child Windows
 
@@ -617,15 +600,6 @@ IMGUI_API void          PlotLines(const char* label, float(*values_getter)(void*
 IMGUI_API void          PlotHistogram(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), int stride = sizeof(float));
 IMGUI_API void          PlotHistogram(const char* label, float(*values_getter)(void* data, int idx), void* data, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0));
 
-// Widgets: Value() Helpers.
-
-// - Those are merely shortcut to calling Text() with a format string. Output single value in "name: value" format (tip: freely declare more in your code to handle your types. you can add functions to the ImGui namespace)
-
-IMGUI_API void          Value(const char* prefix, bool b);
-IMGUI_API void          Value(const char* prefix, int v);
-IMGUI_API void          Value(const char* prefix, unsigned int v);
-IMGUI_API void          Value(const char* prefix, float v, const char* float_format = NULL);
-
 // Widgets: Menus
 
 // create and append to a full screen menu-bar.
@@ -736,15 +710,6 @@ IMGUI_API const ImGuiPayload*   GetDragDropPayload();
 
 IMGUI_API void          PushClipRect(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect);
 IMGUI_API void          PopClipRect();
-
-// Focus, Activation
-
-// - Prefer using "SetItemDefaultFocus()" over "if (IsWindowAppearing()) SetScrollHereY()" when applicable to signify "this is the default item
-
-// make last item the default focused item of a window.
-IMGUI_API void          SetItemDefaultFocus();
-// focus keyboard on the next widget. Use positive 'offset' to access sub components of a multiple component widget. Use -1 to access previous widget.
-IMGUI_API void          SetKeyboardFocusHere(int offset = 0);
 
 // Item/Widgets Utilities
 
