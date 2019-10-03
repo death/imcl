@@ -510,6 +510,17 @@
     (when (button "Set clipboard text")
       (set-clipboard-text (pop (ct-candidates model))))))
 
+;; Style chooser
+
+(defun show-style-chooser ()
+  (window "Styles"
+    (when (button "Dark")
+      (style-colors :dark))
+    (when (button "Light")
+      (style-colors :light))
+    (when (button "Classic")
+      (style-colors :classic))))
+
 ;; Apps
 
 ;; For lack of a better name, I call them apps.  Currently they are

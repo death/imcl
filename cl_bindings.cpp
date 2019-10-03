@@ -687,6 +687,26 @@ APIFUNC(setkeyboardfocushere)
 }
 APIFUNC_END
 
+APIFUNC(stylecolors)
+{
+    cl_object dark = ecl_make_keyword("DARK");
+    cl_object classic = ecl_make_keyword("CLASSIC");
+    cl_object light = ecl_make_keyword("LIGHT");
+    cl_object which = POPARG(as_object, dark);
+    bool ret = true;
+    if (ecl_equal(which, dark)) {
+        ImGui::StyleColorsDark();
+    } else if (ecl_equal(which, classic)) {
+        ImGui::StyleColorsClassic();
+    } else if (ecl_equal(which, light)) {
+        ImGui::StyleColorsLight();
+    } else {
+        ret = false;
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -744,4 +764,5 @@ void cl_define_bindings()
     define("set-tab-item-closed", clapi_settabitemclosed);
     define("set-item-default-focus", clapi_setitemdefaultfocus);
     define("set-keyboard-focus-here", clapi_setkeyboardfocushere);
+    define("style-colors", clapi_stylecolors);
 }
