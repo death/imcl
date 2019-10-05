@@ -707,6 +707,23 @@ APIFUNC(stylecolors)
 }
 APIFUNC_END
 
+APIFUNC(begincombo)
+{
+    const char *label = POPARG(as_text, "label");
+    const char *preview_value = POPARG(as_text, "preview");
+    // TODO: flags
+    ImGuiComboFlags flags = 0;
+    bool ret = ImGui::BeginCombo(label, preview_value, flags);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(endcombo)
+{
+    ImGui::EndCombo();
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -765,4 +782,6 @@ void cl_define_bindings()
     define("set-item-default-focus", clapi_setitemdefaultfocus);
     define("set-keyboard-focus-here", clapi_setkeyboardfocushere);
     define("style-colors", clapi_stylecolors);
+    define("begin-combo", clapi_begincombo);
+    define("end-combo", clapi_endcombo);
 }

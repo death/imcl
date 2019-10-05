@@ -462,7 +462,10 @@
 (defclass basic-widgets-model ()
   ((button-toggle :initform nil :accessor bw-button-toggle)
    (checkbox-toggle :initform nil :accessor bw-checkbox-toggle)
-   (radio-choice :initform 0 :accessor bw-radio-choice)))
+   (radio-choice :initform 0 :accessor bw-radio-choice)
+   (combo-items :initform #("Apple" "Banana" "Cherry" "Dill Pickle" "Earwax")
+                :accessor bw-combo-items)
+   (combo-choice :initform 0 :accessor bw-combo-choice)))
 
 (defvar *basic-widgets-model*
   (make-instance 'basic-widgets-model))
@@ -489,6 +492,14 @@
            (aref #("First option" "Second option" "Third option") i))))
       (when (< i 2)
         (same-line)))
+    (when (begin-combo "Edibles" (aref (bw-combo-items model) (bw-combo-choice model)))
+      (dotimes (i (length (bw-combo-items model)))
+        (let ((is-selected (= i (bw-combo-choice model))))
+          (when (selectable (aref (bw-combo-items model) i) is-selected)
+            (setf (bw-combo-choice model) i))
+          (when is-selected
+            (set-item-default-focus))))
+      (end-combo))
     (tab-bar
       (tab-item "Item 1"
         (text "Content for first tab item"))
