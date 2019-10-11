@@ -134,6 +134,57 @@ ImVec2 as_imvec2(cl_object obj)
     return imvec;
 }
 
+bool ecl_imvec4_p(cl_object object, ImVec4 & result)
+{
+    if (cl_consp(object) == ECL_NIL) {
+        return false;
+    }
+    cl_object car = cl_car(object);
+    if (!ecl_realp(car)) {
+        return false;
+    }
+    cl_object cdr = cl_cdr(object);
+    if (cl_consp(object) == ECL_NIL) {
+        return false;
+    }
+    cl_object cadr = cl_car(cdr);
+    if (!ecl_realp(cadr)) {
+        return false;
+    }
+    cl_object cddr = cl_cdr(cdr);
+    if (cl_consp(cddr) == ECL_NIL) {
+        return false;
+    }
+    cl_object caddr = cl_car(cddr);
+    if (!ecl_realp(caddr)) {
+        return false;
+    }
+    cl_object cdddr = cl_cdr(cddr);
+    if (cl_consp(cdddr) == ECL_NIL) {
+        return false;
+    }
+    cl_object cadddr = cl_car(cdddr);
+    if (!ecl_realp(cadddr)) {
+        return false;
+    }
+    cl_object cddddr = cl_cdr(cdddr);
+    if (cl_null(cddddr) == ECL_NIL) {
+        return false;
+    }
+    result.x = ecl_to_float(car);
+    result.y = ecl_to_float(cadr);
+    result.z = ecl_to_float(caddr);
+    result.w = ecl_to_float(cadddr);
+    return true;
+}
+
+ImVec4 as_imvec4(cl_object obj)
+{
+    ImVec4 imvec(0, 0, 0, 0);
+    ecl_imvec4_p(obj, imvec);
+    return imvec;
+}
+
 struct keyword_enum_descriptor imguicond[] = {
     {"ALWAYS", ImGuiCond_Always},
     {"ONCE", ImGuiCond_Once},
@@ -230,7 +281,45 @@ APIFUNC_END
 APIFUNC(text)
 {
     const char *label = POPARG(as_text, "Text");
-    ImGui::Text(label);
+    ImGui::TextUnformatted(label);
+}
+APIFUNC_END
+
+APIFUNC(textcolored)
+{
+    ImVec4 color = POPARG(as_imvec4, ImVec4(0, 0, 0, 0));;
+    const char *text = POPARG(as_text, "Text");
+    ImGui::TextColored(color, "%s", text);
+}
+APIFUNC_END
+
+APIFUNC(textdisabled)
+{
+    const char *text = POPARG(as_text, "Text");
+    ImGui::TextDisabled("%s", text);
+}
+APIFUNC_END
+
+APIFUNC(textwrapped)
+{
+    const char *text = POPARG(as_text, "Text");
+    ImGui::TextWrapped("%s", text);
+}
+APIFUNC_END
+
+APIFUNC(labeltext)
+{
+    const char *label = POPARG(as_text, "label");
+    const char *text = POPARG(as_text, "text");
+    ImGui::LabelText(label, "%s", text);
+}
+APIFUNC_END
+
+
+APIFUNC(bullettext)
+{
+    const char *label = POPARG(as_text, "BulletText");
+    ImGui::BulletText("%s", label);
 }
 APIFUNC_END
 
@@ -291,13 +380,6 @@ APIFUNC_END
 APIFUNC(spacing)
 {
     ImGui::Spacing();
-}
-APIFUNC_END
-
-APIFUNC(bullettext)
-{
-    const char *label = POPARG(as_text, "BulletText");
-    ImGui::BulletText(label);
 }
 APIFUNC_END
 
@@ -737,6 +819,11 @@ void cl_define_bindings()
     define("begin", clapi_begin);
     define("end", clapi_end);
     define("text", clapi_text);
+    define("text-colored", clapi_textcolored);
+    define("text-disabled", clapi_textdisabled);
+    define("text-wrapped", clapi_textwrapped);
+    define("label-text", clapi_labeltext);
+    define("bullet-text", clapi_bullettext);
     define("button", clapi_button);
     define("same-line", clapi_sameline);
     define("separator", clapi_separator);
@@ -746,7 +833,6 @@ void cl_define_bindings()
     define("pop-item-width", clapi_popitemwidth);
     define("collapsing-header", clapi_collapsingheader);
     define("spacing", clapi_spacing);
-    define("bullet-text", clapi_bullettext);
     define("tree-node", clapi_treenode);
     define("tree-pop", clapi_treepop);
     define("set-next-item-width", clapi_setnextitemwidth);

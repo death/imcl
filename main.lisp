@@ -472,7 +472,7 @@
 
 (defun show-basic-widgets (&aux (model *basic-widgets-model*))
   (window "Basic Widgets"
-    (text "This is a text widget")
+    (text-colored '(0.2 0.6 0.8 1) "This is a text widget")
     (when (button "Click Me")
       (setf (bw-button-toggle model)
             (not (bw-button-toggle model))))
