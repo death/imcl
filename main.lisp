@@ -7,6 +7,7 @@
               (list (ql:qmerge "third-party/"))))
 (ql:quickload "swank")
 (swank:create-server :port 4242 :dont-close t)
+(load "colors")
 
 ;; Evaluate things in the top level process
 
@@ -44,7 +45,6 @@
     result))
 
 (defun named-colors-init ()
-  (load "colors")
   (let ((table (make-hash-table)))
     (loop for (name value) on *named-colors-plist* by #'cddr
           do (setf (gethash name table)
@@ -65,9 +65,15 @@
      (or (gethash value *named-colors*)
          (error "There is no color named ~S." value)))
     (integer
-     value)))
+     value)
+    (cons
+     (destructuring-bind (r g b &optional (a #xFF)) value
+       (dpb r (byte 8 0)
+            (dpb g (byte 8 8)
+                 (dpb b (byte 8 16)
+                      (dpb a (byte 8 24) 0))))))))
 
-;; Convenience macros
+;; Convenience operators
 
 (defmacro window (name &body forms)
   `(unwind-protect
@@ -154,6 +160,9 @@
        (unwind-protect
             (progn ,@forms)
          (end-tab-item)))))
+
+(defun text-colored (color text)
+  (%text-colored (color color) text))
 
 ;; Calculator
 
@@ -472,7 +481,7 @@
 
 (defun show-basic-widgets (&aux (model *basic-widgets-model*))
   (window "Basic Widgets"
-    (text-colored '(0.2 0.6 0.8 1) "This is a text widget")
+    (text "This is a text widget")
     (when (button "Click Me")
       (setf (bw-button-toggle model)
             (not (bw-button-toggle model))))
@@ -531,6 +540,33 @@
       (style-colors :light))
     (when (button "Classic")
       (style-colors :classic))))
+
+;; Colors List
+
+(defclass colors-list-model ()
+  ((colors :initform (coerce (loop for (name value) on *named-colors-plist* by #'cddr
+                                   collect name)
+                             'vector)
+           :reader colors-list-colors)
+   (current :initform 0
+            :accessor colors-list-current)))
+
+(defvar *colors-list-model*
+  (make-instance 'colors-list-model))
+
+(defun show-colors-list (&optional (model *colors-list-model*))
+  (let ((colors (colors-list-colors model)))
+    (symbol-macrolet ((current (colors-list-current model)))
+      (window "Colors"
+        (begin-listbox "Color names" (length colors) 10)
+        (dotimes (i (length colors))
+          (let ((color (aref colors i)))
+            (when (selectable (string-capitalize (substitute #\Space #\- (symbol-name color)))
+                              (= i current))
+              (setf current i))))
+        (end-listbox)
+        (text-colored (aref colors current)
+                      "The Quick Brown Fox Jumped Over The Lazy Dog's Back")))))
 
 ;; Apps
 

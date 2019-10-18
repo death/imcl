@@ -134,8 +134,27 @@ ImVec2 as_imvec2(cl_object obj)
     return imvec;
 }
 
+ImVec4 uint_to_imvec4(unsigned int val)
+{
+    ImVec4 imvec;
+    imvec.x = (val >> 0) & 0xFF;
+    imvec.y = (val >> 8) & 0xFF;
+    imvec.z = (val >> 16) & 0xFF;
+    imvec.w = (val >> 24) & 0xFF;
+    imvec.x /= 255.0;
+    imvec.y /= 255.0;
+    imvec.z /= 255.0;
+    imvec.w /= 255.0;
+    return imvec;
+}
+
 bool ecl_imvec4_p(cl_object object, ImVec4 & result)
 {
+    if (cl_integerp(object) != ECL_NIL) {
+        unsigned int val = as_uint(object);
+        result = uint_to_imvec4(val);
+        return true;
+    }
     if (cl_consp(object) == ECL_NIL) {
         return false;
     }
@@ -287,7 +306,7 @@ APIFUNC_END
 
 APIFUNC(textcolored)
 {
-    ImVec4 color = POPARG(as_imvec4, ImVec4(0, 0, 0, 0));;
+    ImVec4 color = POPARG(as_imvec4, ImVec4(0, 0, 0, 0));
     const char *text = POPARG(as_text, "Text");
     ImGui::TextColored(color, "%s", text);
 }
@@ -806,6 +825,23 @@ APIFUNC(endcombo)
 }
 APIFUNC_END
 
+APIFUNC(beginlistbox)
+{
+    // TODO: overload taking ImVec2
+    const char *label = POPARG(as_text, "label");
+    int nitems = POPARG(as_int, 0);
+    int height = POPARG(as_int, -1);
+    bool ret = ImGui::ListBoxHeader(label, nitems, height);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(endlistbox)
+{
+    ImGui::ListBoxFooter();
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -819,7 +855,7 @@ void cl_define_bindings()
     define("begin", clapi_begin);
     define("end", clapi_end);
     define("text", clapi_text);
-    define("text-colored", clapi_textcolored);
+    define("%text-colored", clapi_textcolored);
     define("text-disabled", clapi_textdisabled);
     define("text-wrapped", clapi_textwrapped);
     define("label-text", clapi_labeltext);
@@ -870,4 +906,6 @@ void cl_define_bindings()
     define("style-colors", clapi_stylecolors);
     define("begin-combo", clapi_begincombo);
     define("end-combo", clapi_endcombo);
+    define("begin-listbox", clapi_beginlistbox);
+    define("end-listbox", clapi_endlistbox);
 }
