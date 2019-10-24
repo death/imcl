@@ -18,7 +18,6 @@
 //   Widgets: Drags
 //   Widgets: Color Editor/Picker
 //   Widgets: Data Plotting
-//   Widgets: Menus
 //   Popups, Modals
 //   Columns
 //   Tab Bars, Tabs
@@ -518,25 +517,6 @@ IMGUI_API void          PlotLines(const char* label, const float* values, int va
 IMGUI_API void          PlotLines(const char* label, float(*values_getter)(void* data, int idx), void* data, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0));
 IMGUI_API void          PlotHistogram(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), int stride = sizeof(float));
 IMGUI_API void          PlotHistogram(const char* label, float(*values_getter)(void* data, int idx), void* data, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0));
-
-// Widgets: Menus
-
-// create and append to a full screen menu-bar.
-IMGUI_API bool          BeginMainMenuBar();
-// only call EndMainMenuBar() if BeginMainMenuBar() returns true!
-IMGUI_API void          EndMainMenuBar();
-// append to menu-bar of current window (requires ImGuiWindowFlags_MenuBar flag set on parent window).
-IMGUI_API bool          BeginMenuBar();
-// only call EndMenuBar() if BeginMenuBar() returns true!
-IMGUI_API void          EndMenuBar();
-// create a sub-menu entry. only call EndMenu() if this returns true!
-IMGUI_API bool          BeginMenu(const char* label, bool enabled = true);
-// only call EndMenu() if BeginMenu() returns true!
-IMGUI_API void          EndMenu();
-// return true when activated. shortcuts are displayed for convenience but not processed by ImGui at the moment
-IMGUI_API bool          MenuItem(const char* label, const char* shortcut = NULL, bool selected = false, bool enabled = true);
-// return true when activated + toggle (*p_selected) if p_selected != NULL
-IMGUI_API bool          MenuItem(const char* label, const char* shortcut, bool* p_selected, bool enabled = true);
 
 // Popups, Modals
 

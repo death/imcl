@@ -568,6 +568,34 @@
         (text-colored (aref colors current)
                       "The Quick Brown Fox Jumped Over The Lazy Dog's Back")))))
 
+;; Menus
+
+(defvar *add-main-menu* nil)
+
+(defun add-main-menu ()
+  (when (begin-main-menu-bar)
+    (when (begin-menu "Hello")
+      (when (menu-item "Die")
+        (setf *add-main-menu* nil))
+      (end-menu))
+    (end-main-menu-bar)))
+
+(defun show-menu-test ()
+  (when (begin "Menus" :menu-bar)
+    (when (begin-menu-bar)
+      (when (begin-menu "Menu")
+        (when (begin-menu "Submenu")
+          (when (menu-item "Close")
+            (app-remove 'show-menu-test))
+          (end-menu))
+        (end-menu))
+      (end-menu-bar))
+    (when (button "Main menu")
+      (setf *add-main-menu* (not *add-main-menu*)))
+    (end))
+  (when *add-main-menu*
+    (add-main-menu)))
+
 ;; Apps
 
 ;; For lack of a better name, I call them apps.  Currently they are

@@ -81,7 +81,7 @@ int keyword_enum_value(cl_object keyword,
     return 0;
 }
 
-int flags_enum_value(cl_object flags, struct keyword_enum_descriptor *descriptors, int size)
+int keyword_flags_value(cl_object flags, struct keyword_enum_descriptor *descriptors, int size)
 {
     if (ecl_keywordp(flags)) {
         return keyword_enum_value(flags, descriptors, size);
@@ -280,13 +280,49 @@ ImGuiCol as_imguicol(cl_object obj)
     return col;
 }
 
+struct keyword_enum_descriptor imguiwindowflags[] = {
+    {"NONE", ImGuiWindowFlags_None},
+    {"NO-TITLE-BAR", ImGuiWindowFlags_NoTitleBar},
+    {"NO-RESIZE", ImGuiWindowFlags_NoResize},
+    {"NO-MOVE", ImGuiWindowFlags_NoMove},
+    {"NO-SCROLLBAR", ImGuiWindowFlags_NoScrollbar},
+    {"NO-SCROLL-WITH-MOUSE", ImGuiWindowFlags_NoScrollWithMouse},
+    {"NO-COLLAPSE", ImGuiWindowFlags_NoCollapse},
+    {"ALWAYS-Auto-Resize", ImGuiWindowFlags_AlwaysAutoResize},
+    {"NO-BACKGROUND", ImGuiWindowFlags_NoBackground},
+    {"NO-SAVED-SETTINGS", ImGuiWindowFlags_NoSavedSettings},
+    {"NO-MOUSE-INPUTS", ImGuiWindowFlags_NoMouseInputs},
+    {"MENU-BAR", ImGuiWindowFlags_MenuBar},
+    {"HORIZONTAL-SCROLLBAR", ImGuiWindowFlags_HorizontalScrollbar},
+    {"NO-FOCUS-ON-APPEARING", ImGuiWindowFlags_NoFocusOnAppearing},
+    {"NO-BRING-TO-FRONT-ON-FOCUS", ImGuiWindowFlags_NoBringToFrontOnFocus},
+    {"ALWAYS-VERTICAL-SCROLLBAR", ImGuiWindowFlags_AlwaysVerticalScrollbar},
+    {"ALWAYS-HORIZONTAL-SCROLLBAR", ImGuiWindowFlags_AlwaysHorizontalScrollbar},
+    {"ALWAYS-USE-WINDOW-PADDING", ImGuiWindowFlags_AlwaysUseWindowPadding},
+    {"NO-NAV-INPUTS", ImGuiWindowFlags_NoNavInputs},
+    {"NO-NAV-FOCUS", ImGuiWindowFlags_NoNavFocus},
+    {"UNSAVED-DOCUMENT", ImGuiWindowFlags_UnsavedDocument},
+    {"NO-NAV", ImGuiWindowFlags_NoNav},
+    {"NO-DECORATION", ImGuiWindowFlags_NoDecoration},
+    {"NO-INPUTS", ImGuiWindowFlags_NoInputs},
+};
+
+ImGuiWindowFlags as_imguiwindowflags(cl_object obj)
+{
+    ImGuiWindowFlags flags = ImGuiWindowFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguiwindowflags, LENGTHOF(imguiwindowflags));
+    }
+    return flags;
+}
 
 // The actual bindings
 
 APIFUNC(begin)
 {
     const char *label = POPARG(as_text, "Window");
-    bool ret = ImGui::Begin(label);
+    ImGuiWindowFlags flags = POPARG(as_imguiwindowflags, ImGuiWindowFlags_None);
+    bool ret = ImGui::Begin(label, NULL, flags);
     RETBOOL(ret);
 }
 APIFUNC_END
@@ -627,8 +663,7 @@ APIFUNC(beginchild)
     const char *id = POPARG(as_text, "child");
     ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
     bool border = POPARG(as_bool, false);
-    // TODO: flags arg
-    ImGuiWindowFlags flags = 0;
+    ImGuiWindowFlags flags = POPARG(as_imguiwindowflags, ImGuiWindowFlags_None);
     bool ret = ImGui::BeginChild(id, size, border, flags);
     RETBOOL(ret);
 }
@@ -842,6 +877,59 @@ APIFUNC(endlistbox)
 }
 APIFUNC_END
 
+APIFUNC(beginmainmenubar)
+{
+    bool ret = ImGui::BeginMainMenuBar();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(endmainmenubar)
+{
+    ImGui::EndMainMenuBar();
+}
+APIFUNC_END
+
+APIFUNC(beginmenubar)
+{
+    bool ret = ImGui::BeginMenuBar();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(endmenubar)
+{
+    ImGui::EndMenuBar();
+}
+APIFUNC_END
+
+APIFUNC(beginmenu)
+{
+    const char *label = POPARG(as_text, "label");
+    bool enabled = POPARG(as_bool, true);
+    bool ret = ImGui::BeginMenu(label, enabled);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(endmenu)
+{
+    ImGui::EndMenu();
+}
+APIFUNC_END
+
+APIFUNC(menuitem)
+{
+    const char *label = POPARG(as_text, "label");
+    const char *shortcut = POPARG(as_text, NULL);
+    bool selected = POPARG(as_bool, false);
+    bool enabled = POPARG(as_bool, true);
+    bool ret = ImGui::MenuItem(label, shortcut, selected, enabled);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -908,4 +996,11 @@ void cl_define_bindings()
     define("end-combo", clapi_endcombo);
     define("begin-listbox", clapi_beginlistbox);
     define("end-listbox", clapi_endlistbox);
+    define("begin-main-menu-bar", clapi_beginmainmenubar);
+    define("end-main-menu-bar", clapi_endmainmenubar);
+    define("begin-menu-bar", clapi_beginmenubar);
+    define("end-menu-bar", clapi_endmenubar);
+    define("begin-menu", clapi_beginmenu);
+    define("end-menu", clapi_endmenu);
+    define("menu-item", clapi_menuitem);
 }
