@@ -10,7 +10,6 @@
 //
 //   Main
 //   Content region
-//   Windows Scrolling
 //   Parameters stacks (shared)
 //   Parameters stacks (current window)
 //   ID stacks/scopes
@@ -220,29 +219,6 @@ IMGUI_API ImVec2        GetWindowContentRegionMin();
 IMGUI_API ImVec2        GetWindowContentRegionMax();
 //
 IMGUI_API float         GetWindowContentRegionWidth();
-
-// Windows Scrolling
-
-// get scrolling amount [0..GetScrollMaxX()]
-IMGUI_API float         GetScrollX();
-// get scrolling amount [0..GetScrollMaxY()]
-IMGUI_API float         GetScrollY();
-// get maximum scrolling amount ~~ ContentSize.X - WindowSize.X
-IMGUI_API float         GetScrollMaxX();
-// get maximum scrolling amount ~~ ContentSize.Y - WindowSize.Y
-IMGUI_API float         GetScrollMaxY();
-// set scrolling amount [0..GetScrollMaxX()]
-IMGUI_API void          SetScrollX(float scroll_x);
-// set scrolling amount [0..GetScrollMaxY()]
-IMGUI_API void          SetScrollY(float scroll_y);
-// adjust scrolling amount to make current cursor position
-// visible. center_y_ratio=0.0: top, 0.5: center, 1.0: bottom. When
-// using to make a "default/current item" visible, consider using
-// SetItemDefaultFocus() instead.
-IMGUI_API void          SetScrollHereY(float center_y_ratio = 0.5f);
-// adjust scrolling amount to make given position visible. Generally
-// GetCursorStartPos() + offset to compute a valid position.
-IMGUI_API void          SetScrollFromPosY(float local_y, float center_y_ratio = 0.5f);
 
 // Parameters stacks (shared)
 

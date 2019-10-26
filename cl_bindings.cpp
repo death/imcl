@@ -929,6 +929,63 @@ APIFUNC(menuitem)
 }
 APIFUNC_END
 
+APIFUNC(getscrollx)
+{
+    float ret = ImGui::GetScrollX();
+    RETFLOAT(ret);
+}
+APIFUNC_END
+
+APIFUNC(getscrolly)
+{
+    float ret = ImGui::GetScrollY();
+    RETFLOAT(ret);
+}
+APIFUNC_END
+
+APIFUNC(getscrollmaxx)
+{
+    float ret = ImGui::GetScrollMaxX();
+    RETFLOAT(ret);
+}
+APIFUNC_END
+
+APIFUNC(getscrollmaxy)
+{
+    float ret = ImGui::GetScrollMaxY();
+    RETFLOAT(ret);
+}
+APIFUNC_END
+
+APIFUNC(setscrollx)
+{
+    float x = POPARG(as_float, 0.0F);
+    ImGui::SetScrollX(x);
+}
+APIFUNC_END
+
+APIFUNC(setscrolly)
+{
+    float y = POPARG(as_float, 0.0F);
+    ImGui::SetScrollY(y);
+}
+APIFUNC_END
+
+APIFUNC(setscrollherey)
+{
+    float r = POPARG(as_float, 0.5F);
+    ImGui::SetScrollHereY(r);
+}
+APIFUNC_END
+
+APIFUNC(setscrollfromposy)
+{
+    float y = POPARG(as_float, 0.0F);
+    float r = POPARG(as_float, 0.5F);
+    ImGui::SetScrollFromPosY(y, r);
+}
+APIFUNC_END
+
 
 // Bindings definition
 
@@ -1003,4 +1060,12 @@ void cl_define_bindings()
     define("begin-menu", clapi_beginmenu);
     define("end-menu", clapi_endmenu);
     define("menu-item", clapi_menuitem);
+    define("get-scroll-x", clapi_getscrollx);
+    define("get-scroll-y", clapi_getscrollx);
+    define("get-scroll-max-x", clapi_getscrollmaxx);
+    define("get-scroll-max-y", clapi_getscrollmaxy);
+    define("set-scroll-x", clapi_setscrollx);
+    define("set-scroll-y", clapi_setscrolly);
+    define("set-scroll-here-y", clapi_setscrollherey);
+    define("set-scroll-from-pos-y", clapi_setscrollfromposy);
 }
