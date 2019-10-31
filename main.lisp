@@ -474,7 +474,10 @@
    (radio-choice :initform 0 :accessor bw-radio-choice)
    (combo-items :initform #("Apple" "Banana" "Cherry" "Dill Pickle" "Earwax")
                 :accessor bw-combo-items)
-   (combo-choice :initform 0 :accessor bw-combo-choice)))
+   (combo-choice :initform 0 :accessor bw-combo-choice)
+   (slider-values-list
+    :initform (copy-tree '((0.0) (0.1 0.2) (0.3 0.4 0.5) (0.6 0.7 0.8 0.9)))
+    :reader bw-slider-values-list)))
 
 (defvar *basic-widgets-model*
   (make-instance 'basic-widgets-model))
@@ -513,7 +516,11 @@
       (tab-item "Item 1"
         (text "Content for first tab item"))
       (tab-item "Item 2"
-        (text "Content for second tab item")))))
+        (text "Content for second tab item"))
+      (tab-item "Sliders"
+        (loop for i upfrom 1
+              for v in (bw-slider-values-list model)
+              do (slider-float (format nil "~R" i) v))))))
 
 ;; Clipboard test
 

@@ -987,6 +987,55 @@ APIFUNC(setscrollfromposy)
 }
 APIFUNC_END
 
+APIFUNC(sliderfloat)
+{
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    float v_min = POPARG(as_float, 0.0F);
+    float v_max = POPARG(as_float, 1.0F);
+    const char *format = POPARG(as_text, "%.3f");
+    float power = POPARG(as_float, 1.0F);
+    bool ret = false;
+    float v[4];
+    int n = 0;
+    cl_object sub = val;
+    while (cl_consp(sub) != ECL_NIL && n < 4) {
+        cl_object car = cl_car(sub);
+        if (!ecl_realp(car)) {
+            n = 0;
+            break;
+        }
+        v[n] = as_float(car);
+        n++;
+        sub = cl_cdr(sub);
+    }
+    switch (n) {
+    case 0:
+        break;
+    case 1:
+        ret = ImGui::SliderFloat(label, v, v_min, v_max, format, power);
+        break;
+    case 2:
+        ret = ImGui::SliderFloat2(label, v, v_min, v_max, format, power);
+        break;
+    case 3:
+        ret = ImGui::SliderFloat3(label, v, v_min, v_max, format, power);
+        break;
+    case 4:
+        ret = ImGui::SliderFloat4(label, v, v_min, v_max, format, power);
+        break;
+    default:
+        break;
+    }
+    sub = val;
+    for (int i = 0; i < n; i++) {
+        cl_object f = ecl_make_single_float(v[i]);
+        cl_rplaca(sub, f);
+        sub = cl_cdr(sub);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
 
 // Bindings definition
 
@@ -1069,4 +1118,5 @@ void cl_define_bindings()
     define("set-scroll-y", clapi_setscrolly);
     define("set-scroll-here-y", clapi_setscrollherey);
     define("set-scroll-from-pos-y", clapi_setscrollfromposy);
+    define("slider-float", clapi_sliderfloat);
 }
