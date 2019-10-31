@@ -660,6 +660,7 @@ APIFUNC_END
 
 APIFUNC(beginchild)
 {
+    // TODO: ImGuiID variant?
     const char *id = POPARG(as_text, "child");
     ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
     bool border = POPARG(as_bool, false);
