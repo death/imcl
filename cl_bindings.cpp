@@ -1037,6 +1037,75 @@ APIFUNC(sliderfloat)
 }
 APIFUNC_END
 
+APIFUNC(sliderangle)
+{
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    float v_degrees_min = POPARG(as_float, -360.0F);
+    float v_degrees_max = POPARG(as_float, +360.0F);
+    const char *format = POPARG(as_text, "%.0f deg");
+    bool ret = false;
+    if (cl_consp(val) != ECL_NIL) {
+        cl_object car = cl_car(val);
+        if (ecl_realp(car)) {
+            float v_rad = as_float(car);
+            ret = ImGui::SliderAngle(label, &v_rad, v_degrees_min, v_degrees_max, format);
+            cl_rplaca(val, ecl_make_single_float(v_rad));
+        }
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(sliderint)
+{
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    int v_min = POPARG(as_int, 0);
+    int v_max = POPARG(as_int, 100);
+    const char *format = POPARG(as_text, "%d");
+    bool ret = false;
+    int v[4];
+    int n = 0;
+    cl_object sub = val;
+    while (cl_consp(sub) != ECL_NIL && n < 4) {
+        cl_object car = cl_car(sub);
+        if (!ecl_realp(car)) {
+            n = 0;
+            break;
+        }
+        v[n] = as_int(car);
+        n++;
+        sub = cl_cdr(sub);
+    }
+    switch (n) {
+    case 0:
+        break;
+    case 1:
+        ret = ImGui::SliderInt(label, v, v_min, v_max, format);
+        break;
+    case 2:
+        ret = ImGui::SliderInt2(label, v, v_min, v_max, format);
+        break;
+    case 3:
+        ret = ImGui::SliderInt3(label, v, v_min, v_max, format);
+        break;
+    case 4:
+        ret = ImGui::SliderInt4(label, v, v_min, v_max, format);
+        break;
+    default:
+        break;
+    }
+    sub = val;
+    for (int i = 0; i < n; i++) {
+        cl_object f = ecl_make_int32_t(v[i]);
+        cl_rplaca(sub, f);
+        sub = cl_cdr(sub);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1119,4 +1188,6 @@ void cl_define_bindings()
     define("set-scroll-here-y", clapi_setscrollherey);
     define("set-scroll-from-pos-y", clapi_setscrollfromposy);
     define("slider-float", clapi_sliderfloat);
+    define("slider-angle", clapi_sliderangle);
+    define("slider-int", clapi_sliderint);
 }

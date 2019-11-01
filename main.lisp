@@ -475,9 +475,13 @@
    (combo-items :initform #("Apple" "Banana" "Cherry" "Dill Pickle" "Earwax")
                 :accessor bw-combo-items)
    (combo-choice :initform 0 :accessor bw-combo-choice)
-   (slider-values-list
+   (slider-float-values-list
     :initform (copy-tree '((0.0) (0.1 0.2) (0.3 0.4 0.5) (0.6 0.7 0.8 0.9)))
-    :reader bw-slider-values-list)))
+    :reader bw-slider-float-values-list)
+   (slider-angle-value :initform (list 0.0) :reader bw-slider-angle-value)
+   (slider-int-values-list
+    :initform (copy-tree '((0) (1 2) (3 4 5) (6 7 8)))
+    :reader bw-slider-int-values-list)))
 
 (defvar *basic-widgets-model*
   (make-instance 'basic-widgets-model))
@@ -519,8 +523,12 @@
         (text "Content for second tab item"))
       (tab-item "Sliders"
         (loop for i upfrom 1
-              for v in (bw-slider-values-list model)
-              do (slider-float (format nil "~R" i) v))))))
+              for v in (bw-slider-float-values-list model)
+              do (slider-float (format nil "float ~R" i) v))
+        (slider-angle "angle" (bw-slider-angle-value model))
+        (loop for i upfrom 1
+              for v in (bw-slider-int-values-list model)
+              do (slider-int (format nil "int ~R" i) v))))))
 
 ;; Clipboard test
 
