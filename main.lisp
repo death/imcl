@@ -528,7 +528,8 @@
         (slider-angle "angle" (bw-slider-angle-value model))
         (loop for i upfrom 1
               for v in (bw-slider-int-values-list model)
-              do (slider-int (format nil "int ~R" i) v))))))
+              do (slider-int (format nil "int ~R" i) v))
+        (vslider-float "vert float one" '(40 100) (first (bw-slider-float-values-list model)))))))
 
 ;; Clipboard test
 
