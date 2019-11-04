@@ -143,8 +143,6 @@ int main(int argc, char **argv)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != NULL);
 
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
     cl_define_bindings();
 
     cl_object window_cl = ecl_make_pointer(window);
@@ -157,7 +155,8 @@ int main(int argc, char **argv)
     cl_eval(c_string_to_object("(load \"main\")"));
     cl_eval(c_string_to_object("(init)"));
 
-    cl_object calltick = c_string_to_object("(tick)");
+    cl_object callgltick = c_string_to_object("(gl-tick)");
+    cl_object callimtick = c_string_to_object("(im-tick)");
 
     g_error_state.show_error = 0;
     g_error_state.message[0] = '\0';
@@ -190,12 +189,12 @@ int main(int argc, char **argv)
             double lisp_start_time = glfwGetTime();
             cl_env_ptr env = ecl_process_env();
             ECL_CATCH_ALL_BEGIN(env) {
-                cl_eval(calltick);
+                cl_eval(callimtick);
             }
             ECL_CATCH_ALL_IF_CAUGHT {
                 g_error_state.show_error = 1;
                 snprintf(g_error_state.message, ERROR_STATE_MESSAGE_NCHARS,
-                         "An error was signaled by TICK.");
+                         "An error was signaled by IM-TICK.");
             }
             ECL_CATCH_ALL_END;
             double lisp_end_time = glfwGetTime();
@@ -221,8 +220,25 @@ int main(int argc, char **argv)
         glfwMakeContextCurrent(window);
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
+
+        if (!g_error_state.show_error) {
+            double lisp_start_time = glfwGetTime();
+            cl_env_ptr env = ecl_process_env();
+            ECL_CATCH_ALL_BEGIN(env) {
+                cl_eval(callgltick);
+            }
+            ECL_CATCH_ALL_IF_CAUGHT {
+                g_error_state.show_error = 1;
+                snprintf(g_error_state.message, ERROR_STATE_MESSAGE_NCHARS,
+                         "An error was signaled by GL-TICK.");
+            }
+            ECL_CATCH_ALL_END;
+            double lisp_end_time = glfwGetTime();
+            double lisp_duration = lisp_end_time - lisp_start_time;
+            int time_in_lisp = (int)(lisp_duration * 1000000.0);
+            //cl_set(time_in_lisp_var, ecl_make_int32_t(time_in_lisp));
+        }
+
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwMakeContextCurrent(window);
