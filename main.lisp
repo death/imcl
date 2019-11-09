@@ -529,7 +529,9 @@
         (loop for i upfrom 1
               for v in (bw-slider-int-values-list model)
               do (slider-int (format nil "int ~R" i) v))
-        (vslider-float "vert float one" '(40 100) (first (bw-slider-float-values-list model)))))))
+        (vslider-float "vert float one" '(40 100) (first (bw-slider-float-values-list model)))
+        (same-line)
+        (vslider-int "vert int one" '(40 100) (first (bw-slider-int-values-list model)))))))
 
 ;; Clipboard test
 

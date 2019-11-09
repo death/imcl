@@ -1128,6 +1128,27 @@ APIFUNC(vsliderfloat)
 }
 APIFUNC_END
 
+APIFUNC(vsliderint)
+{
+    const char *label = POPARG(as_text, "label");
+    ImVec2 size = POPARG(as_imvec2, ImVec2(50, 50));
+    cl_object val = POPARG(as_object, ECL_NIL);
+    int v_min = POPARG(as_int, 0);
+    int v_max = POPARG(as_int, 100);
+    const char *format = POPARG(as_text, "%d");
+    bool ret = false;
+    if (cl_consp(val) != ECL_NIL) {
+        cl_object car = cl_car(val);
+        if (ecl_realp(car)) {
+            int v = as_int(car);
+            ret = ImGui::VSliderInt(label, size, &v, v_min, v_max, format);
+            cl_rplaca(val, ecl_make_int32_t(v));
+        }
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1213,4 +1234,5 @@ void cl_define_bindings()
     define("slider-angle", clapi_sliderangle);
     define("slider-int", clapi_sliderint);
     define("vslider-float", clapi_vsliderfloat);
+    define("vslider-int", clapi_vsliderint);
 }
