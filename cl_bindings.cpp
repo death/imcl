@@ -288,7 +288,7 @@ struct keyword_enum_descriptor imguiwindowflags[] = {
     {"NO-SCROLLBAR", ImGuiWindowFlags_NoScrollbar},
     {"NO-SCROLL-WITH-MOUSE", ImGuiWindowFlags_NoScrollWithMouse},
     {"NO-COLLAPSE", ImGuiWindowFlags_NoCollapse},
-    {"ALWAYS-Auto-Resize", ImGuiWindowFlags_AlwaysAutoResize},
+    {"ALWAYS-AUTO-RESIZE", ImGuiWindowFlags_AlwaysAutoResize},
     {"NO-BACKGROUND", ImGuiWindowFlags_NoBackground},
     {"NO-SAVED-SETTINGS", ImGuiWindowFlags_NoSavedSettings},
     {"NO-MOUSE-INPUTS", ImGuiWindowFlags_NoMouseInputs},
