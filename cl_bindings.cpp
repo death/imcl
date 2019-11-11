@@ -316,6 +316,45 @@ ImGuiWindowFlags as_imguiwindowflags(cl_object obj)
     return flags;
 }
 
+struct keyword_enum_descriptor imguifocusedflags[] = {
+    {"NONE", ImGuiFocusedFlags_None},
+    {"CHILD-WINDOWS", ImGuiFocusedFlags_ChildWindows},
+    {"ROOT-WINDOW", ImGuiFocusedFlags_RootWindow},
+    {"ANY-WINDOW", ImGuiFocusedFlags_AnyWindow},
+    {"ROOT-AND-CHILD-WINDOWS", ImGuiFocusedFlags_RootAndChildWindows},
+};
+
+ImGuiFocusedFlags as_imguifocusedflags(cl_object obj)
+{
+    ImGuiFocusedFlags flags = ImGuiFocusedFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguifocusedflags, LENGTHOF(imguifocusedflags));
+    }
+    return flags;
+}
+
+struct keyword_enum_descriptor imguihoveredflags[] = {
+    {"NONE", ImGuiHoveredFlags_None},
+    {"CHILD-WINDOWS", ImGuiHoveredFlags_ChildWindows},
+    {"ROOT-WINDOW", ImGuiHoveredFlags_RootWindow},
+    {"ANY-WINDOW", ImGuiHoveredFlags_AnyWindow},
+    {"ALLOW-WHEN-BLOCKED-BY-POPUP", ImGuiHoveredFlags_AllowWhenBlockedByPopup},
+    {"ALLOW-WHEN-BLOCKED-BY-ACTIVE-ITEM", ImGuiHoveredFlags_AllowWhenBlockedByActiveItem},
+    {"ALLOW-WHEN-OVERLAPPED", ImGuiHoveredFlags_AllowWhenOverlapped},
+    {"ALLOW-WHEN-DISABLED", ImGuiHoveredFlags_AllowWhenDisabled},
+    {"RECT-ONLY", ImGuiHoveredFlags_RectOnly},
+    {"ROOT-AND-CHILD-WINDOWS", ImGuiHoveredFlags_RootAndChildWindows},
+};
+
+ImGuiHoveredFlags as_imguihoveredflags(cl_object obj)
+{
+    ImGuiHoveredFlags flags = ImGuiHoveredFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguihoveredflags, LENGTHOF(imguihoveredflags));
+    }
+    return flags;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -732,8 +771,8 @@ APIFUNC_END
 
 APIFUNC(isitemhovered)
 {
-    // TODO: ImGuiHoveredFlags
-    bool hovered = ImGui::IsItemHovered();
+    ImGuiHoveredFlags flags = POPARG(as_imguihoveredflags, ImGuiHoveredFlags_None);
+    bool hovered = ImGui::IsItemHovered(flags);
     RETBOOL(hovered);
 }
 APIFUNC_END
@@ -1149,6 +1188,36 @@ APIFUNC(vsliderint)
 }
 APIFUNC_END
 
+APIFUNC(iswindowappearing)
+{
+    bool ret = ImGui::IsWindowAppearing();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(iswindowcollapsed)
+{
+    bool ret = ImGui::IsWindowCollapsed();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(iswindowfocused)
+{
+    ImGuiFocusedFlags flags = POPARG(as_imguifocusedflags, ImGuiFocusedFlags_None);
+    bool ret = ImGui::IsWindowFocused(flags);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(iswindowhovered)
+{
+    ImGuiHoveredFlags flags = POPARG(as_imguihoveredflags, ImGuiHoveredFlags_None);
+    bool ret = ImGui::IsWindowHovered(flags);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1235,4 +1304,8 @@ void cl_define_bindings()
     define("slider-int", clapi_sliderint);
     define("vslider-float", clapi_vsliderfloat);
     define("vslider-int", clapi_vsliderint);
+    define("is-window-appearing", clapi_iswindowappearing);
+    define("is-window-collapsed", clapi_iswindowcollapsed);
+    define("is-window-focused", clapi_iswindowfocused);
+    define("is-window-hovered", clapi_iswindowhovered);
 }

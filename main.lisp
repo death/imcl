@@ -614,6 +614,70 @@
   (when *add-main-menu*
     (add-main-menu)))
 
+;; Window Information
+
+(defclass window-info-test-model ()
+  ((last-appearing :initform nil :accessor wit-last-appearing)
+   (last-collapsed :initform nil :accessor wit-last-collapsed)))
+
+(defvar *wit-model*
+  (make-instance 'window-info-test-model))
+
+(defun yesno (boolean)
+  (text (if boolean "Yes" "No")))
+
+(defun ago (universal-time)
+  (let* ((now (get-universal-time))
+         (duration (- now universal-time)))
+    (cond ((zerop duration)
+           "Right about now (funk soul brotha)")
+          ((= -1 duration)
+           "1 second in the future")
+          ((minusp duration)
+           (format nil "~D seconds in the future" (- duration)))
+          ((= 1 duration)
+           "1 second ago")
+          (t
+           (format nil "~D seconds ago" duration)))))
+
+(defun show-window-info-test (&optional (model *wit-model*))
+  (let ((show (begin "Window Utilities")))
+    (unwind-protect
+         (let ((appearing (is-window-appearing))
+               (collapsed (is-window-collapsed)))
+           (when appearing
+             (setf (wit-last-appearing model) (get-universal-time))
+             (setf (wit-last-collapsed model) nil))
+           (when collapsed
+             (setf (wit-last-collapsed model) (get-universal-time)))
+           (when show
+             (columns 2)
+             (text "Appearing?")
+             (next-column)
+             (yesno appearing)
+             (next-column)
+             (text "Last Appearing")
+             (next-column)
+             (text (if (null (wit-last-appearing model)) "-" (ago (wit-last-appearing model))))
+             (next-column)
+             (text "Collapsed?")
+             (next-column)
+             (yesno collapsed)
+             (next-column)
+             (text "Last Collapsed")
+             (next-column)
+             (text (if (null (wit-last-collapsed model)) "-" (ago (wit-last-collapsed model))))
+             (next-column)
+             (text "Focused?")
+             (next-column)
+             (yesno (is-window-focused))
+             (next-column)
+             (text "Hovered?")
+             (next-column)
+             (yesno (is-window-hovered))
+             (next-column)))
+      (end))))
+
 ;; Apps
 
 ;; For lack of a better name, I call them apps.  Currently they are
