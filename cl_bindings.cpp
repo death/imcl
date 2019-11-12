@@ -57,6 +57,19 @@ static cl_object as_object(cl_object obj)
     ecl_return1(ecl_process_env(), result);     \
     }
 
+#define APIFUNC2(name)                                  \
+    static cl_object clapi_ ## name(cl_narg nargs, ...) \
+    {                                                   \
+    ecl_va_list ap;                                     \
+    cl_object result1 = ECL_NIL;                        \
+    cl_object result2 = ECL_NIL;                        \
+    ecl_va_start(ap, nargs, nargs, 0);
+
+#define APIFUNC2_END                             \
+    ecl_va_end(ap);                              \
+    ecl_return2(ecl_process_env(), result1, result2);   \
+    }
+
 // Translating keywords to enum values
 
 struct keyword_enum_descriptor
@@ -1218,6 +1231,22 @@ APIFUNC(iswindowhovered)
 }
 APIFUNC_END
 
+APIFUNC2(getwindowpos)
+{
+    ImVec2 pos = ImGui::GetWindowPos();
+    result1 = ecl_make_single_float(pos.x);
+    result2 = ecl_make_single_float(pos.y);
+}
+APIFUNC2_END
+
+APIFUNC2(getwindowsize)
+{
+    ImVec2 size = ImGui::GetWindowSize();
+    result1 = ecl_make_single_float(size.x);
+    result2 = ecl_make_single_float(size.y);
+}
+APIFUNC2_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1308,4 +1337,6 @@ void cl_define_bindings()
     define("is-window-collapsed", clapi_iswindowcollapsed);
     define("is-window-focused", clapi_iswindowfocused);
     define("is-window-hovered", clapi_iswindowhovered);
+    define("get-window-pos", clapi_getwindowpos);
+    define("get-window-size", clapi_getwindowsize);
 }

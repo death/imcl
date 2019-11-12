@@ -114,15 +114,6 @@ IMGUI_API const char*   GetVersion();
 // get draw list associated to the current window, to append your own
 // drawing primitives
 IMGUI_API ImDrawList*   GetWindowDrawList();
-// get current window position in screen space (useful if you want to
-// do your own drawing via the DrawList API)
-IMGUI_API ImVec2        GetWindowPos();
-// get current window size
-IMGUI_API ImVec2        GetWindowSize();
-// get current window width (shortcut for GetWindowSize().x)
-IMGUI_API float         GetWindowWidth();
-// get current window height (shortcut for GetWindowSize().y)
-IMGUI_API float         GetWindowHeight();
 
 // Prefer using SetNextXXX functions (before Begin) rather that SetXXX
 // functions (after Begin).

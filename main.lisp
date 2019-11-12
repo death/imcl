@@ -675,7 +675,16 @@
              (text "Hovered?")
              (next-column)
              (yesno (is-window-hovered))
-             (next-column)))
+             (next-column)
+             (text "Position")
+             (next-column)
+             (multiple-value-bind (x y) (get-window-pos)
+               (text (format nil "~D, ~D" x y)))
+             (next-column)
+             (text "Size")
+             (next-column)
+             (multiple-value-bind (x y) (get-window-size)
+               (text (format nil "~D, ~D" x y)))))
       (end))))
 
 ;; Apps
