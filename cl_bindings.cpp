@@ -1256,6 +1256,113 @@ APIFUNC(setnextwindowpos)
 }
 APIFUNC_END
 
+APIFUNC(setnextwindowcontentsize)
+{
+    ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+    ImGui::SetNextWindowContentSize(size);
+}
+APIFUNC_END
+
+APIFUNC(setnextwindowcollapsed)
+{
+    bool collapsed = POPARG(as_bool, true);
+    ImGuiCond cond = POPARG(as_imguicond, ImGuiCond_Always);
+    ImGui::SetNextWindowCollapsed(collapsed, cond);
+}
+APIFUNC_END
+
+APIFUNC(setnextwindowfocus)
+{
+    ImGui::SetNextWindowFocus();
+}
+APIFUNC_END
+
+APIFUNC(setnextwindowbgalpha)
+{
+    float alpha = POPARG(as_float, 1.0);
+    ImGui::SetNextWindowBgAlpha(alpha);
+}
+APIFUNC_END
+
+APIFUNC(setwindowpos)
+{
+    cl_object name_or_pos = POPARG(as_object, ECL_NIL);
+    const char *name = 0;
+    ImVec2 pos;
+    if (ecl_stringp(name_or_pos)) {
+        name = as_text(name_or_pos);
+        pos = POPARG(as_imvec2, ImVec2(0, 0));
+    } else {
+        pos = as_imvec2(name_or_pos);
+    }
+    ImGuiCond cond = POPARG(as_imguicond, ImGuiCond_Always);
+    if (name) {
+        ImGui::SetWindowPos(name, pos, cond);
+    } else {
+        ImGui::SetWindowPos(pos, cond);
+    }
+}
+APIFUNC_END
+
+APIFUNC(setwindowsize)
+{
+    cl_object name_or_size = POPARG(as_object, ECL_NIL);
+    const char *name = 0;
+    ImVec2 size;
+    if (ecl_stringp(name_or_size)) {
+        name = as_text(name_or_size);
+        size = POPARG(as_imvec2, ImVec2(0, 0));
+    } else {
+        size = as_imvec2(name_or_size);
+    }
+    ImGuiCond cond = POPARG(as_imguicond, ImGuiCond_Always);
+    if (name) {
+        ImGui::SetWindowSize(name, size, cond);
+    } else {
+        ImGui::SetWindowSize(size, cond);
+    }
+}
+APIFUNC_END
+
+APIFUNC(setwindowcollapsed)
+{
+    cl_object name_or_collapsed = POPARG(as_object, ECL_NIL);
+    const char *name = 0;
+    bool collapsed = true;
+    if (ecl_stringp(name_or_collapsed)) {
+        name = as_text(name_or_collapsed);
+        collapsed = POPARG(as_bool, true);
+    } else {
+        collapsed = as_bool(name_or_collapsed);
+    }
+    ImGuiCond cond = POPARG(as_imguicond, ImGuiCond_Always);
+    if (name) {
+        ImGui::SetWindowCollapsed(name, collapsed, cond);
+    } else {
+        ImGui::SetWindowCollapsed(collapsed, cond);
+    }
+}
+APIFUNC_END
+
+APIFUNC(setwindowfocus)
+{
+    const char *name = POPARG(as_text, 0);
+    if (name) {
+        ImGui::SetWindowFocus(name);
+    } else {
+        ImGui::SetWindowFocus();
+    }
+}
+APIFUNC_END
+
+APIFUNC(setwindowfontscale)
+{
+    float scale = POPARG(as_float, 1.0);
+    ImGui::SetWindowFontScale(scale);
+}
+APIFUNC_END
+
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1349,4 +1456,13 @@ void cl_define_bindings()
     define("get-window-pos", clapi_getwindowpos);
     define("get-window-size", clapi_getwindowsize);
     define("set-next-window-pos", clapi_setnextwindowpos);
+    define("set-next-window-content-size", clapi_setnextwindowcontentsize);
+    define("set-next-window-collapsed", clapi_setnextwindowcollapsed);
+    define("set-next-window-focus", clapi_setnextwindowfocus);
+    define("set-next-window-bg-alpha", clapi_setnextwindowbgalpha);
+    define("set-window-pos", clapi_setwindowpos);
+    define("set-window-size", clapi_setwindowsize);
+    define("set-window-collapsed", clapi_setwindowcollapsed);
+    define("set-window-focus", clapi_setwindowfocus);
+    define("set-window-font-scale", clapi_setwindowfontscale);
 }
