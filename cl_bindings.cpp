@@ -1362,6 +1362,51 @@ APIFUNC(setwindowfontscale)
 }
 APIFUNC_END
 
+APIFUNC(calcitemwidth)
+{
+    float width = ImGui::CalcItemWidth();
+    RETFLOAT(width);
+}
+APIFUNC_END
+
+APIFUNC(pushtextwrappos)
+{
+    float pos = POPARG(as_float, 0.0F);
+    ImGui::PushTextWrapPos(pos);
+}
+APIFUNC_END
+
+APIFUNC(poptextwrappos)
+{
+    ImGui::PopTextWrapPos();
+}
+APIFUNC_END
+
+APIFUNC(pushallowkeyboardfocus)
+{
+    bool allow = POPARG(as_bool, true);
+    ImGui::PushAllowKeyboardFocus(allow);
+}
+APIFUNC_END
+
+APIFUNC(popallowkeyboardfocus)
+{
+    ImGui::PopAllowKeyboardFocus();
+}
+APIFUNC_END
+
+APIFUNC(pushbuttonrepeat)
+{
+    bool repeat = POPARG(as_bool, true);
+    ImGui::PushButtonRepeat(repeat);
+}
+APIFUNC_END
+
+APIFUNC(popbuttonrepeat)
+{
+    ImGui::PopButtonRepeat();
+}
+APIFUNC_END
 
 // Bindings definition
 
@@ -1465,4 +1510,11 @@ void cl_define_bindings()
     define("set-window-collapsed", clapi_setwindowcollapsed);
     define("set-window-focus", clapi_setwindowfocus);
     define("set-window-font-scale", clapi_setwindowfontscale);
+    define("calc-item-width", clapi_calcitemwidth);
+    define("push-text-wrap-pos", clapi_pushtextwrappos);
+    define("pop-text-wrap-pos", clapi_poptextwrappos);
+    define("push-allow-keyboard-focus", clapi_pushallowkeyboardfocus);
+    define("pop-allow-keyboard-focus", clapi_popallowkeyboardfocus);
+    define("push-button-repeat", clapi_pushbuttonrepeat);
+    define("pop-button-repeat", clapi_popbuttonrepeat);
 }

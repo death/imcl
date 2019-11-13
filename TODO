@@ -10,7 +10,6 @@
 //   Main
 //   Content region
 //   Parameters stacks (shared)
-//   Parameters stacks (current window)
 //   ID stacks/scopes
 //   Widgets: Main
 //   Widgets: Drags
@@ -172,36 +171,6 @@ IMGUI_API ImU32         GetColorU32(ImGuiCol idx, float alpha_mul = 1.0f);
 IMGUI_API ImU32         GetColorU32(const ImVec4& col);
 // retrieve given color with style alpha applied
 IMGUI_API ImU32         GetColorU32(ImU32 col);
-
-// Parameters stacks (current window)
-
-// set width of items for common large "item+label" widgets. >0.0f:
-// width in pixels, <0.0f align xx pixels to the right of window (so
-// -1.0f always align width to the right side). 0.0f = default to ~2/3
-// of windows width,
-IMGUI_API void          PushItemWidth(float item_width);
-IMGUI_API void          PopItemWidth();
-// set width of the _next_ common large "item+label" widget. >0.0f:
-// width in pixels, <0.0f align xx pixels to the right of window (so
-// -1.0f always align width to the right side)
-IMGUI_API void          SetNextItemWidth(float item_width);
-// width of item given pushed settings and current cursor position
-IMGUI_API float         CalcItemWidth();
-// word-wrapping for Text*() commands. < 0.0f: no wrapping; 0.0f: wrap
-// to end of window (or column); > 0.0f: wrap at 'wrap_pos_x' position
-// in window local space
-IMGUI_API void          PushTextWrapPos(float wrap_local_pos_x = 0.0f);
-IMGUI_API void          PopTextWrapPos();
-// allow focusing using TAB/Shift-TAB, enabled by default but you can
-// disable it for certain widgets
-IMGUI_API void          PushAllowKeyboardFocus(bool allow_keyboard_focus);
-IMGUI_API void          PopAllowKeyboardFocus();
-// in 'repeat' mode, Button*() functions return repeated true in a
-// typematic manner (using io.KeyRepeatDelay/io.KeyRepeatRate
-// setting). Note that you can call IsItemActive() after any Button()
-// to tell if the button is held in the current frame.
-IMGUI_API void          PushButtonRepeat(bool repeat);
-IMGUI_API void          PopButtonRepeat();
 
 // Cursor / Layout
 
