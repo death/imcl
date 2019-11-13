@@ -118,12 +118,6 @@ IMGUI_API ImDrawList*   GetWindowDrawList();
 // Prefer using SetNextXXX functions (before Begin) rather that SetXXX
 // functions (after Begin).
 //
-// set next window position. call before Begin(). use
-// pivot=(0.5f,0.5f) to center on given point, etc.
-IMGUI_API void          SetNextWindowPos(const ImVec2& pos, ImGuiCond cond = 0, const ImVec2& pivot = ImVec2(0,0));
-// set next window size. set axis to 0.0f to force an auto-fit on this
-// axis. call before Begin()
-IMGUI_API void          SetNextWindowSize(const ImVec2& size, ImGuiCond cond = 0);
 // set next window size limits. use -1,-1 on either X/Y axis to
 // preserve the current size. Use callback to apply non-trivial
 // programmatic constraints.

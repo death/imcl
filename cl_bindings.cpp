@@ -1247,6 +1247,15 @@ APIFUNC2(getwindowsize)
 }
 APIFUNC2_END
 
+APIFUNC(setnextwindowpos)
+{
+    ImVec2 pos = POPARG(as_imvec2, ImVec2(0, 0));
+    ImGuiCond cond = POPARG(as_imguicond, ImGuiCond_Always);
+    ImVec2 pivot = POPARG(as_imvec2, ImVec2(0, 0));
+    ImGui::SetNextWindowPos(pos, cond, pivot);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1339,4 +1348,5 @@ void cl_define_bindings()
     define("is-window-hovered", clapi_iswindowhovered);
     define("get-window-pos", clapi_getwindowpos);
     define("get-window-size", clapi_getwindowsize);
+    define("set-next-window-pos", clapi_setnextwindowpos);
 }

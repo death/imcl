@@ -252,6 +252,7 @@
   (vector 1.0 1.0 1.0 1.0 1.0 1.0 0.1 0.1))
 
 (defun window-property-editor ()
+  (set-next-window-pos '(100 100) :first-use-ever)
   (set-next-window-size '(430 450) :first-use-ever)
   (window "Property Editor"
     (with-style (:frame-padding '(2 2))
