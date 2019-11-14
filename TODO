@@ -177,36 +177,6 @@ IMGUI_API ImU32         GetColorU32(ImU32 col);
 // - By "cursor" we mean the current output position.
 // - The typical widget behavior is to output themselves at the current cursor position, then move the cursor one line down.
 
-// separator, generally horizontal. inside a menu bar or in horizontal layout mode, this becomes a vertical separator.
-IMGUI_API void          Separator();
-// call between widgets or groups to layout them horizontally. X position given in window coordinates.
-IMGUI_API void          SameLine(float offset_from_start_x=0.0f, float spacing=-1.0f);
-// undo a SameLine() or force a new line when in an horizontal-layout context.
-IMGUI_API void          NewLine();
-// add vertical spacing.
-IMGUI_API void          Spacing();
-// add a dummy item of given size. unlike InvisibleButton(), Dummy() won't take the mouse click or be navigable into.
-IMGUI_API void          Dummy(const ImVec2& size);
-// move content position toward the right, by style.IndentSpacing or indent_w if != 0
-IMGUI_API void          Indent(float indent_w = 0.0f);
-// move content position back to the left, by style.IndentSpacing or indent_w if != 0
-IMGUI_API void          Unindent(float indent_w = 0.0f);
-// lock horizontal starting position
-IMGUI_API void          BeginGroup();
-// unlock horizontal starting position + capture the whole group bounding box into one "item" (so you can use IsItemHovered() or layout primitives such as SameLine() on whole group, etc.)
-IMGUI_API void          EndGroup();
-// cursor position in window coordinates (relative to window position)
-IMGUI_API ImVec2        GetCursorPos();
-//   (some functions are using window-relative coordinates, such as: GetCursorPos, GetCursorStartPos, GetContentRegionMax, GetWindowContentRegion* etc.
-IMGUI_API float         GetCursorPosX();
-//    other functions such as GetCursorScreenPos or everything in ImDrawList::
-IMGUI_API float         GetCursorPosY();
-//    are using the main, absolute coordinate system.
-IMGUI_API void          SetCursorPos(const ImVec2& local_pos);
-//    GetWindowPos() + GetCursorPos() == GetCursorScreenPos() etc.)
-IMGUI_API void          SetCursorPosX(float local_x);
-//
-IMGUI_API void          SetCursorPosY(float local_y);
 // initial cursor position in window coordinates
 IMGUI_API ImVec2        GetCursorStartPos();
 // cursor position in absolute screen coordinates [0..io.DisplaySize] (useful to work with ImDrawList API)

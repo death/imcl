@@ -441,7 +441,9 @@ APIFUNC_END
 
 APIFUNC(sameline)
 {
-    ImGui::SameLine();
+    float offset = POPARG(as_float, 0.0F);
+    float spacing = POPARG(as_float, -1.0F);
+    ImGui::SameLine(offset, spacing);
 }
 APIFUNC_END
 
@@ -1408,6 +1410,48 @@ APIFUNC(popbuttonrepeat)
 }
 APIFUNC_END
 
+APIFUNC(newline)
+{
+    ImGui::NewLine();
+}
+APIFUNC_END
+
+APIFUNC(dummy)
+{
+    ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+    ImGui::Dummy(size);
+}
+APIFUNC_END
+
+APIFUNC(indent)
+{
+    float w = POPARG(as_float, 0.0F);
+    ImGui::Indent(w);
+}
+APIFUNC_END
+
+APIFUNC(unindent)
+{
+    float w = POPARG(as_float, 0.0F);
+    ImGui::Unindent(w);
+}
+APIFUNC_END
+
+APIFUNC2(getcursorpos)
+{
+    ImVec2 pos = ImGui::GetCursorPos();
+    result1 = ecl_make_single_float(pos.x);
+    result2 = ecl_make_single_float(pos.y);
+}
+APIFUNC2_END
+
+APIFUNC(setcursorpos)
+{
+    ImVec2 pos = POPARG(as_imvec2, ImVec2(0, 0));
+    ImGui::SetCursorPos(pos);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1517,4 +1561,10 @@ void cl_define_bindings()
     define("pop-allow-keyboard-focus", clapi_popallowkeyboardfocus);
     define("push-button-repeat", clapi_pushbuttonrepeat);
     define("pop-button-repeat", clapi_popbuttonrepeat);
+    define("new-line", clapi_newline);
+    define("dummy", clapi_dummy);
+    define("indent", clapi_indent);
+    define("unindent", clapi_unindent);
+    define("get-cursor-pos", clapi_getcursorpos);
+    define("set-cursor-pos", clapi_setcursorpos);
 }
