@@ -1452,6 +1452,57 @@ APIFUNC(setcursorpos)
 }
 APIFUNC_END
 
+APIFUNC2(getcursorstartpos)
+{
+    ImVec2 pos = ImGui::GetCursorStartPos();
+    result1 = ecl_make_single_float(pos.x);
+    result2 = ecl_make_single_float(pos.y);
+}
+APIFUNC2_END
+
+APIFUNC2(getcursorscreenpos)
+{
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    result1 = ecl_make_single_float(pos.x);
+    result2 = ecl_make_single_float(pos.y);
+}
+APIFUNC2_END
+
+APIFUNC(setcursorscreenpos)
+{
+    ImVec2 pos = POPARG(as_imvec2, ImVec2(0, 0));
+    ImGui::SetCursorScreenPos(pos);
+}
+APIFUNC_END
+
+APIFUNC(gettextlineheight)
+{
+    float height = ImGui::GetTextLineHeight();
+    RETFLOAT(height);
+}
+APIFUNC_END
+
+APIFUNC(gettextlineheightwithspacing)
+{
+    float height = ImGui::GetTextLineHeightWithSpacing();
+    RETFLOAT(height);
+}
+APIFUNC_END
+
+APIFUNC(getframeheight)
+{
+    float height = ImGui::GetFrameHeight();
+    RETFLOAT(height);
+}
+APIFUNC_END
+
+APIFUNC(getframeheightwithspacing)
+{
+    float height = ImGui::GetFrameHeightWithSpacing();
+    RETFLOAT(height);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1567,4 +1618,11 @@ void cl_define_bindings()
     define("unindent", clapi_unindent);
     define("get-cursor-pos", clapi_getcursorpos);
     define("set-cursor-pos", clapi_setcursorpos);
+    define("get-cursor-start-pos", clapi_getcursorstartpos);
+    define("get-cursor-screen-pos", clapi_getcursorscreenpos);
+    define("set-cursor-screen-pos", clapi_setcursorscreenpos);
+    define("get-text-line-height", clapi_gettextlineheight);
+    define("get-text-line-height-with-spacing", clapi_gettextlineheightwithspacing);
+    define("get-frame-height", clapi_getframeheight);
+    define("get-frame-height-with-spacing", clapi_getframeheightwithspacing);
 }

@@ -25,7 +25,6 @@
 // Large tasks
 //
 //   Windows Utilities
-//   Cursor/Layout
 //   Widgets: Input with Keyboard
 //   Widgets: Trees
 //   Item/Widgets Utiltiies
@@ -171,28 +170,6 @@ IMGUI_API ImU32         GetColorU32(ImGuiCol idx, float alpha_mul = 1.0f);
 IMGUI_API ImU32         GetColorU32(const ImVec4& col);
 // retrieve given color with style alpha applied
 IMGUI_API ImU32         GetColorU32(ImU32 col);
-
-// Cursor / Layout
-
-// - By "cursor" we mean the current output position.
-// - The typical widget behavior is to output themselves at the current cursor position, then move the cursor one line down.
-
-// initial cursor position in window coordinates
-IMGUI_API ImVec2        GetCursorStartPos();
-// cursor position in absolute screen coordinates [0..io.DisplaySize] (useful to work with ImDrawList API)
-IMGUI_API ImVec2        GetCursorScreenPos();
-// cursor position in absolute screen coordinates [0..io.DisplaySize]
-IMGUI_API void          SetCursorScreenPos(const ImVec2& pos);
-// vertically align upcoming text baseline to FramePadding.y so that it will align properly to regularly framed items (call if you have text on a line before a framed item)
-IMGUI_API void          AlignTextToFramePadding();
-// ~ FontSize
-IMGUI_API float         GetTextLineHeight();
-// ~ FontSize + style.ItemSpacing.y (distance in pixels between 2 consecutive lines of text)
-IMGUI_API float         GetTextLineHeightWithSpacing();
-// ~ FontSize + style.FramePadding.y * 2
-IMGUI_API float         GetFrameHeight();
-// ~ FontSize + style.FramePadding.y * 2 + style.ItemSpacing.y (distance in pixels between 2 consecutive lines of framed widgets)
-IMGUI_API float         GetFrameHeightWithSpacing();
 
 // ID stack/scopes
 
