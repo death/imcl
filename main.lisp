@@ -482,7 +482,8 @@
    (slider-angle-value :initform (list 0.0) :reader bw-slider-angle-value)
    (slider-int-values-list
     :initform (copy-tree '((0) (1 2) (3 4 5) (6 7 8)))
-    :reader bw-slider-int-values-list)))
+    :reader bw-slider-int-values-list)
+   (invisible-button-toggle :initform nil :accessor bw-invisible-button-toggle)))
 
 (defvar *basic-widgets-model*
   (make-instance 'basic-widgets-model))
@@ -501,7 +502,7 @@
     (setf (bw-checkbox-toggle model)
           (checkbox "Checkbox" (bw-checkbox-toggle model)))
     (dotimes (i 3)
-      (when (radio (format nil "Radio ~D" i) (= (bw-radio-choice model) i))
+      (when (radio-button (format nil "Radio ~D" i) (= (bw-radio-choice model) i))
         (setf (bw-radio-choice model) i))
       (when (item-hovered-p)
         (tooltip
@@ -519,7 +520,19 @@
       (end-combo))
     (tab-bar
       (tab-item "Item 1"
-        (text "Content for first tab item"))
+        (text "Content for first tab item")
+        (button "This is a button")
+        (small-button "This is a small button")
+        (when (invisible-button "This is an invisible button" '(10 10))
+          (setf (bw-invisible-button-toggle model)
+                (not (bw-invisible-button-toggle model))))
+        (when (bw-invisible-button-toggle model)
+          (text "You found it!"))
+        (dolist (dir '(:left :right :up :down))
+          (arrow-button (format nil "arrow-~A" dir) dir)
+          (same-line))
+        (bullet)
+        (new-line))
       (tab-item "Item 2"
         (text "Content for second tab item"))
       (tab-item "Sliders"

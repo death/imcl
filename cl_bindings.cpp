@@ -368,6 +368,23 @@ ImGuiHoveredFlags as_imguihoveredflags(cl_object obj)
     return flags;
 }
 
+struct keyword_enum_descriptor imguidir[] = {
+    {"NONE", ImGuiDir_None},
+    {"LEFT", ImGuiDir_Left},
+    {"RIGHT", ImGuiDir_Right},
+    {"UP", ImGuiDir_Up},
+    {"DOWN", ImGuiDir_Down},
+};
+
+ImGuiDir as_imguidir(cl_object obj)
+{
+    ImGuiDir dir = ImGuiDir_None;
+    if (obj != ECL_NIL) {
+        dir = keyword_enum_value(obj, imguidir, LENGTHOF(imguidir));
+    }
+    return dir;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -765,17 +782,17 @@ APIFUNC(showdemowindow)
 }
 APIFUNC_END
 
-APIFUNC(checkbox)
+APIFUNC2(checkbox)
 {
     const char *label = POPARG(as_text, "checkbox");
     bool v = POPARG(as_bool, false);
-    // TODO: what about the bool return value?
-    ImGui::Checkbox(label, &v);
-    RETBOOL(v);
+    bool ret = ImGui::Checkbox(label, &v);
+    result1 = v ? ECL_T : ECL_NIL;
+    result2 = ret ? ECL_T : ECL_NIL;
 }
-APIFUNC_END
+APIFUNC2_END
 
-APIFUNC(radio)
+APIFUNC(radiobutton)
 {
     const char *label = POPARG(as_text, "radio");
     bool active = POPARG(as_bool, false);
@@ -1503,6 +1520,38 @@ APIFUNC(getframeheightwithspacing)
 }
 APIFUNC_END
 
+APIFUNC(smallbutton)
+{
+    const char *label = POPARG(as_text, "label");
+    bool ret = ImGui::SmallButton(label);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(invisiblebutton)
+{
+    const char *id = POPARG(as_text, "id");
+    ImVec2 size = POPARG(as_imvec2, ImVec2(1, 1));
+    bool ret = ImGui::InvisibleButton(id, size);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(arrowbutton)
+{
+    const char *id = POPARG(as_text, "id");
+    ImGuiDir dir = POPARG(as_imguidir, ImGuiDir_Left);
+    bool ret = ImGui::ArrowButton(id, dir);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(bullet)
+{
+    ImGui::Bullet();
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1550,7 +1599,7 @@ void cl_define_bindings()
     define("pop-style-color", clapi_popstylecolor);
     define("show-demo-window", clapi_showdemowindow);
     define("checkbox", clapi_checkbox);
-    define("radio", clapi_radio);
+    define("radio-button", clapi_radiobutton);
     define("item-hovered-p", clapi_isitemhovered);
     define("set-tooltip", clapi_settooltip);
     define("begin-tooltip", clapi_begintooltip);
@@ -1625,4 +1674,8 @@ void cl_define_bindings()
     define("get-text-line-height-with-spacing", clapi_gettextlineheightwithspacing);
     define("get-frame-height", clapi_getframeheight);
     define("get-frame-height-with-spacing", clapi_getframeheightwithspacing);
+    define("small-button", clapi_smallbutton);
+    define("invisible-button", clapi_invisiblebutton);
+    define("arrow-button", clapi_arrowbutton);
+    define("bullet", clapi_bullet);
 }
