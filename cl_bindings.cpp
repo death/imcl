@@ -406,6 +406,38 @@ ImGuiSelectableFlags as_imguiselectableflags(cl_object obj)
     return flags;
 }
 
+struct keyword_enum_descriptor imguiinputtextflags[] = {
+    {"NONE", ImGuiInputTextFlags_None},
+    {"CHARS-DECIMAL", ImGuiInputTextFlags_CharsDecimal},
+    {"CHARS-HEXADECIMAL", ImGuiInputTextFlags_CharsHexadecimal},
+    {"CHARS-UPPERCASE", ImGuiInputTextFlags_CharsUppercase},
+    {"CHARS-NO-BLANK", ImGuiInputTextFlags_CharsNoBlank},
+    {"AUTO-SELECT-ALL", ImGuiInputTextFlags_AutoSelectAll},
+    {"ENTER-RETURNS-TRUE", ImGuiInputTextFlags_EnterReturnsTrue},
+    {"CALLBACK-COMPLETION", ImGuiInputTextFlags_CallbackCompletion},
+    {"CALLBACK-HISTORY", ImGuiInputTextFlags_CallbackHistory},
+    {"CALLBACK-ALWAYS", ImGuiInputTextFlags_CallbackAlways},
+    {"CALLBACK-CHAR-FILTER", ImGuiInputTextFlags_CallbackCharFilter},
+    {"ALLOW-TAB-INPUT", ImGuiInputTextFlags_AllowTabInput},
+    {"CTRL-ENTER-FOR-NEW-LINE", ImGuiInputTextFlags_CtrlEnterForNewLine},
+    {"NO-HORIZONTAL-SCROLL", ImGuiInputTextFlags_NoHorizontalScroll},
+    {"ALWAYS-INSERT-MODE", ImGuiInputTextFlags_AlwaysInsertMode},
+    {"READ-ONLY", ImGuiInputTextFlags_ReadOnly},
+    {"PASSWORD", ImGuiInputTextFlags_Password},
+    {"NO-UNDO-REDO", ImGuiInputTextFlags_NoUndoRedo},
+    {"CHARS-SCIENTIFIC", ImGuiInputTextFlags_CharsScientific},
+    {"CALLBACK-RESIZE", ImGuiInputTextFlags_CallbackResize},
+};
+
+ImGuiInputTextFlags as_imguiinputtextflags(cl_object obj)
+{
+    ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguiinputtextflags, LENGTHOF(imguiinputtextflags));
+    }
+    return flags;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -548,20 +580,6 @@ APIFUNC(setnextitemwidth)
 {
     int width = POPARG(as_int, -1);
     ImGui::SetNextItemWidth(width);
-}
-APIFUNC_END
-
-APIFUNC(dragfloat)
-{
-    const char *label = POPARG(as_text, "float");
-    float f = POPARG(as_float, 0.0F);
-    float v_speed = POPARG(as_float, 1.0F);
-    float v_min = POPARG(as_float, 0.0F);
-    float v_max = POPARG(as_float, 0.0F);
-    const char *format = POPARG(as_text, "%.3f");
-    float power = POPARG(as_float, 1.0);
-    ImGui::DragFloat(label, &f, v_speed, v_min, v_max, format, power);
-    RETFLOAT(f);
 }
 APIFUNC_END
 
@@ -726,19 +744,6 @@ APIFUNC_END
 APIFUNC(nextcolumn)
 {
     ImGui::NextColumn();
-}
-APIFUNC_END
-
-APIFUNC(inputfloat)
-{
-    const char *label = POPARG(as_text, "label");
-    float v = POPARG(as_float, 0.0F);
-    float step = POPARG(as_float, 0.0F);
-    float step_fast = POPARG(as_float, 0.0F);
-    const char *format = POPARG(as_text, "%.3f");
-    int flags = POPARG(as_int, 0);
-    ImGui::InputFloat(label, &v, step, step_fast, format, flags);
-    RETFLOAT(v);
 }
 APIFUNC_END
 
@@ -1682,6 +1687,107 @@ APIFUNC(isanyitemfocused)
 }
 APIFUNC_END
 
+APIFUNC(dragfloat)
+{
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    float v_speed = POPARG(as_float, 1.0F);
+    float v_min = POPARG(as_float, 0.0F);
+    float v_max = POPARG(as_float, 0.0F);
+    const char *format = POPARG(as_text, "%.3f");
+    float power = POPARG(as_float, 1.0F);
+    bool ret = false;
+    float v[4];
+    int n = 0;
+    cl_object sub = val;
+    while (cl_consp(sub) != ECL_NIL && n < 4) {
+        cl_object car = cl_car(sub);
+        if (!ecl_realp(car)) {
+            n = 0;
+            break;
+        }
+        v[n] = as_float(car);
+        n++;
+        sub = cl_cdr(sub);
+    }
+    switch (n) {
+    case 0:
+        break;
+    case 1:
+        ret = ImGui::DragFloat(label, v, v_speed, v_min, v_max, format, power);
+        break;
+    case 2:
+        ret = ImGui::DragFloat2(label, v, v_speed, v_min, v_max, format, power);
+        break;
+    case 3:
+        ret = ImGui::DragFloat3(label, v, v_speed, v_min, v_max, format, power);
+        break;
+    case 4:
+        ret = ImGui::DragFloat4(label, v, v_speed, v_min, v_max, format, power);
+        break;
+    default:
+        break;
+    }
+    sub = val;
+    for (int i = 0; i < n; i++) {
+        cl_object f = ecl_make_single_float(v[i]);
+        cl_rplaca(sub, f);
+        sub = cl_cdr(sub);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(inputfloat)
+{
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    float step = POPARG(as_float, 0.0F);
+    float step_fast = POPARG(as_float, 0.0F);
+    const char *format = POPARG(as_text, "%.3f");
+    ImGuiInputTextFlags flags = POPARG(as_imguiinputtextflags, ImGuiInputTextFlags_None);
+    bool ret = false;
+    float v[4];
+    int n = 0;
+    cl_object sub = val;
+    while (cl_consp(sub) != ECL_NIL && n < 4) {
+        cl_object car = cl_car(sub);
+        if (!ecl_realp(car)) {
+            n = 0;
+            break;
+        }
+        v[n] = as_float(car);
+        n++;
+        sub = cl_cdr(sub);
+    }
+    switch (n) {
+    case 0:
+        break;
+    case 1:
+        ret = ImGui::InputFloat(label, v, step, step_fast, format, flags);
+        break;
+    case 2:
+        ret = ImGui::InputFloat2(label, v, format, flags);
+        break;
+    case 3:
+        ret = ImGui::InputFloat3(label, v, format, flags);
+        break;
+    case 4:
+        ret = ImGui::InputFloat4(label, v, format, flags);
+        break;
+    default:
+        break;
+    }
+    sub = val;
+    for (int i = 0; i < n; i++) {
+        cl_object f = ecl_make_single_float(v[i]);
+        cl_rplaca(sub, f);
+        sub = cl_cdr(sub);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1712,7 +1818,6 @@ void cl_define_bindings()
     define("tree-node", clapi_treenode);
     define("tree-pop", clapi_treepop);
     define("set-next-item-width", clapi_setnextitemwidth);
-    define("drag-float", clapi_dragfloat);
     define("push-style-var", clapi_pushstylevar);
     define("pop-style-var", clapi_popstylevar);
     define("columns", clapi_columns);
@@ -1720,7 +1825,6 @@ void cl_define_bindings()
     define("pop-id", clapi_popid);
     define("align-text-to-frame-padding", clapi_aligntexttoframepadding);
     define("next-column", clapi_nextcolumn);
-    define("input-float", clapi_inputfloat);
     define("set-next-window-size", clapi_setnextwindowsize);
     define("begin-child", clapi_beginchild);
     define("end-child", clapi_endchild);
@@ -1824,4 +1928,6 @@ void cl_define_bindings()
     define("any-item-hovered-p", clapi_isanyitemhovered);
     define("any-item-active-p", clapi_isanyitemactive);
     define("any-item-focused-p", clapi_isanyitemfocused);
+    define("drag-float", clapi_dragfloat);
+    define("input-float", clapi_inputfloat);
 }

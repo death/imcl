@@ -249,7 +249,14 @@
 ;; Property Editor example port from C++
 
 (defvar *property-editor-float-values*
-  (vector 1.0 1.0 1.0 1.0 1.0 1.0 0.1 0.1))
+  (vector (list 1.0)
+          (list 1.0 1.0)
+          (list 1.0 1.0 1.0)
+          (list 1.0 1.0 1.0 1.0)
+          (list 1.0)
+          (list 1.0 1.0)
+          (list 1.0 1.0 1.0)
+          (list 1.0 1.0 1.0 1.0)))
 
 (defun window-property-editor ()
   (set-next-window-pos '(100 100) :first-use-ever)
@@ -273,11 +280,9 @@
                        (align-text-to-frame-padding)
                        (next-column)
                        (set-next-item-width -1)
-                       (if (> i 5)
-                           (setf (aref *property-editor-float-values* i)
-                                 (input-float "##value" (aref *property-editor-float-values* i) 1.0))
-                           (setf (aref *property-editor-float-values* i)
-                                 (drag-float "##value" (aref *property-editor-float-values* i))))
+                       (if (>= i 4)
+                           (input-float "##value" (aref *property-editor-float-values* i) 1)
+                           (drag-float "##value" (aref *property-editor-float-values* i)))
                        (next-column)))
                 (tree-pop))))))
       (columns 1)
