@@ -1690,10 +1690,10 @@ void cl_define_bindings()
     define("slider-int", clapi_sliderint);
     define("vslider-float", clapi_vsliderfloat);
     define("vslider-int", clapi_vsliderint);
-    define("is-window-appearing", clapi_iswindowappearing);
-    define("is-window-collapsed", clapi_iswindowcollapsed);
-    define("is-window-focused", clapi_iswindowfocused);
-    define("is-window-hovered", clapi_iswindowhovered);
+    define("window-appearing-p", clapi_iswindowappearing);
+    define("window-collapsed-p", clapi_iswindowcollapsed);
+    define("window-focused-p", clapi_iswindowfocused);
+    define("window-hovered-p", clapi_iswindowhovered);
     define("get-window-pos", clapi_getwindowpos);
     define("get-window-size", clapi_getwindowsize);
     define("set-next-window-pos", clapi_setnextwindowpos);
