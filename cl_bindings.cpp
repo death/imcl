@@ -1604,6 +1604,84 @@ APIFUNC(progressbar)
 }
 APIFUNC_END
 
+APIFUNC(isitemactive)
+{
+    bool ret = ImGui::IsItemActive();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isitemfocused)
+{
+    bool ret = ImGui::IsItemFocused();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isitemclicked)
+{
+    int button = POPARG(as_int, 0);
+    bool ret = ImGui::IsItemClicked(button);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isitemvisible)
+{
+    bool ret = ImGui::IsItemVisible();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isitemedited)
+{
+    bool ret = ImGui::IsItemEdited();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isitemactivated)
+{
+    bool ret = ImGui::IsItemActivated();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isitemdeactivated)
+{
+    bool ret = ImGui::IsItemDeactivated();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isitemdeactivatedafteredit)
+{
+    bool ret = ImGui::IsItemDeactivatedAfterEdit();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isanyitemhovered)
+{
+    bool ret = ImGui::IsAnyItemHovered();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isanyitemactive)
+{
+    bool ret = ImGui::IsAnyItemActive();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isanyitemfocused)
+{
+    bool ret = ImGui::IsAnyItemFocused();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1735,4 +1813,15 @@ void cl_define_bindings()
     define("get-window-content-region-min", clapi_getwindowcontentregionmin);
     define("get-window-content-region-max", clapi_getwindowcontentregionmax);
     define("progress-bar", clapi_progressbar);
+    define("item-active-p", clapi_isitemactive);
+    define("item-focused-p", clapi_isitemfocused);
+    define("item-clicked-p", clapi_isitemclicked);
+    define("item-visible-p", clapi_isitemvisible);
+    define("item-edited-p", clapi_isitemedited);
+    define("item-activated-p", clapi_isitemactivated);
+    define("item-deactivated-p", clapi_isitemdeactivated);
+    define("item-deactivated-after-edit-p", clapi_isitemdeactivatedafteredit);
+    define("any-item-hovered-p", clapi_isanyitemhovered);
+    define("any-item-active-p", clapi_isanyitemactive);
+    define("any-item-focused-p", clapi_isanyitemfocused);
 }
