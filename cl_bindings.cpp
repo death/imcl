@@ -70,6 +70,10 @@ static cl_object as_object(cl_object obj)
     ecl_return2(ecl_process_env(), result1, result2);   \
     }
 
+#define RETIMVEC2(v)                            \
+    result1 = ecl_make_single_float((v).x);     \
+    result2 = ecl_make_single_float((v).y);
+
 // Translating keywords to enum values
 
 struct keyword_enum_descriptor
@@ -1253,16 +1257,14 @@ APIFUNC_END
 APIFUNC2(getwindowpos)
 {
     ImVec2 pos = ImGui::GetWindowPos();
-    result1 = ecl_make_single_float(pos.x);
-    result2 = ecl_make_single_float(pos.y);
+    RETIMVEC2(pos);
 }
 APIFUNC2_END
 
 APIFUNC2(getwindowsize)
 {
     ImVec2 size = ImGui::GetWindowSize();
-    result1 = ecl_make_single_float(size.x);
-    result2 = ecl_make_single_float(size.y);
+    RETIMVEC2(size);
 }
 APIFUNC2_END
 
@@ -1457,8 +1459,7 @@ APIFUNC_END
 APIFUNC2(getcursorpos)
 {
     ImVec2 pos = ImGui::GetCursorPos();
-    result1 = ecl_make_single_float(pos.x);
-    result2 = ecl_make_single_float(pos.y);
+    RETIMVEC2(pos);
 }
 APIFUNC2_END
 
@@ -1472,16 +1473,14 @@ APIFUNC_END
 APIFUNC2(getcursorstartpos)
 {
     ImVec2 pos = ImGui::GetCursorStartPos();
-    result1 = ecl_make_single_float(pos.x);
-    result2 = ecl_make_single_float(pos.y);
+    RETIMVEC2(pos);
 }
 APIFUNC2_END
 
 APIFUNC2(getcursorscreenpos)
 {
     ImVec2 pos = ImGui::GetCursorScreenPos();
-    result1 = ecl_make_single_float(pos.x);
-    result2 = ecl_make_single_float(pos.y);
+    RETIMVEC2(pos);
 }
 APIFUNC2_END
 
@@ -1551,6 +1550,34 @@ APIFUNC(bullet)
     ImGui::Bullet();
 }
 APIFUNC_END
+
+APIFUNC2(getcontentregionmax)
+{
+    ImVec2 ret = ImGui::GetContentRegionMax();
+    RETIMVEC2(ret);
+}
+APIFUNC2_END
+
+APIFUNC2(getcontentregionavail)
+{
+    ImVec2 ret = ImGui::GetContentRegionAvail();
+    RETIMVEC2(ret);
+}
+APIFUNC2_END
+
+APIFUNC2(getwindowcontentregionmin)
+{
+    ImVec2 ret = ImGui::GetWindowContentRegionMin();
+    RETIMVEC2(ret);
+}
+APIFUNC2_END
+
+APIFUNC2(getwindowcontentregionmax)
+{
+    ImVec2 ret = ImGui::GetWindowContentRegionMax();
+    RETIMVEC2(ret);
+}
+APIFUNC2_END
 
 // Bindings definition
 
@@ -1678,4 +1705,8 @@ void cl_define_bindings()
     define("invisible-button", clapi_invisiblebutton);
     define("arrow-button", clapi_arrowbutton);
     define("bullet", clapi_bullet);
+    define("get-content-region-max", clapi_getcontentregionmax);
+    define("get-content-region-avail", clapi_getcontentregionavail);
+    define("get-window-content-region-min", clapi_getwindowcontentregionmin);
+    define("get-window-content-region-max", clapi_getwindowcontentregionmax);
 }

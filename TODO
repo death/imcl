@@ -8,7 +8,6 @@
 // Medium tasks
 //
 //   Main
-//   Content region
 //   Parameters stacks (shared)
 //   ID stacks/scopes
 //   Widgets: Main
@@ -120,25 +119,6 @@ IMGUI_API ImDrawList*   GetWindowDrawList();
 // preserve the current size. Use callback to apply non-trivial
 // programmatic constraints.
 IMGUI_API void          SetNextWindowSizeConstraints(const ImVec2& size_min, const ImVec2& size_max, ImGuiSizeCallback custom_callback = NULL, void* custom_callback_data = NULL);
-
-// Content region
-
-// Those functions are bound to be redesigned soon (they are
-// confusing, incomplete and return values in local window coordinates
-// which increases confusion)
-//
-// current content boundaries (typically window boundaries including scrolling, or current column boundaries), in windows coordinates
-IMGUI_API ImVec2        GetContentRegionMax();
-// == GetContentRegionMax() - GetCursorPos()
-IMGUI_API ImVec2        GetContentRegionAvail();
-// == GetContentRegionAvail().x
-IMGUI_API float         GetContentRegionAvailWidth();
-// content boundaries min (roughly (0,0)-Scroll), in window coordinates
-IMGUI_API ImVec2        GetWindowContentRegionMin();
-// content boundaries max (roughly (0,0)+Size-Scroll) where Size can be override with SetNextWindowContentSize(), in window coordinates
-IMGUI_API ImVec2        GetWindowContentRegionMax();
-//
-IMGUI_API float         GetWindowContentRegionWidth();
 
 // Parameters stacks (shared)
 
