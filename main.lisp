@@ -483,7 +483,8 @@
    (slider-int-values-list
     :initform (copy-tree '((0) (1 2) (3 4 5) (6 7 8)))
     :reader bw-slider-int-values-list)
-   (invisible-button-toggle :initform nil :accessor bw-invisible-button-toggle)))
+   (invisible-button-toggle :initform nil :accessor bw-invisible-button-toggle)
+   (progress :initform 0.0 :accessor bw-progress)))
 
 (defvar *basic-widgets-model*
   (make-instance 'basic-widgets-model))
@@ -534,7 +535,12 @@
         (bullet)
         (new-line))
       (tab-item "Item 2"
-        (text "Content for second tab item"))
+        (text "Content for second tab item")
+        (progress-bar (bw-progress model))
+        (when (< (random 1.0) 0.1)
+          (incf (bw-progress model) (random 0.05))
+          (when (> (bw-progress model) 1.0)
+            (setf (bw-progress model) 0.0))))
       (tab-item "Sliders"
         (loop for i upfrom 1
               for v in (bw-slider-float-values-list model)

@@ -1579,6 +1579,15 @@ APIFUNC2(getwindowcontentregionmax)
 }
 APIFUNC2_END
 
+APIFUNC(progressbar)
+{
+    float fraction = POPARG(as_float, 0.0F);
+    ImVec2 size = POPARG(as_imvec2, ImVec2(-1, 0));
+    const char *overlay = POPARG(as_text, NULL);
+    ImGui::ProgressBar(fraction, size, overlay);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1709,4 +1718,5 @@ void cl_define_bindings()
     define("get-content-region-avail", clapi_getcontentregionavail);
     define("get-window-content-region-min", clapi_getwindowcontentregionmin);
     define("get-window-content-region-max", clapi_getwindowcontentregionmax);
+    define("progress-bar", clapi_progressbar);
 }
