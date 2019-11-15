@@ -389,6 +389,23 @@ ImGuiDir as_imguidir(cl_object obj)
     return dir;
 }
 
+struct keyword_enum_descriptor imguiselectableflags[] = {
+    {"NONE", ImGuiSelectableFlags_None},
+    {"DONT-CLOSE-POPUPS", ImGuiSelectableFlags_DontClosePopups},
+    {"SPAN-ALL-COLUMNS", ImGuiSelectableFlags_SpanAllColumns},
+    {"ALLOW-DOUBLE-CLICK", ImGuiSelectableFlags_AllowDoubleClick},
+    {"DISABLED", ImGuiSelectableFlags_Disabled},
+};
+
+ImGuiSelectableFlags as_imguiselectableflags(cl_object obj)
+{
+    ImGuiSelectableFlags flags = ImGuiSelectableFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguiselectableflags, LENGTHOF(imguiselectableflags));
+    }
+    return flags;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -755,8 +772,7 @@ APIFUNC(selectable)
 {
     const char *label = POPARG(as_text, "selectable");
     bool selected = POPARG(as_bool, false);
-    // TODO: flags arg
-    ImGuiSelectableFlags flags = 0;
+    ImGuiSelectableFlags flags = POPARG(as_imguiselectableflags, ImGuiSelectableFlags_None);
     ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
     bool ret = ImGui::Selectable(label, selected, flags, size);
     RETBOOL(ret);
