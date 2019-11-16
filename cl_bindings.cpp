@@ -1887,6 +1887,52 @@ APIFUNC(inputint)
 }
 APIFUNC_END
 
+APIFUNC(getcolumnindex)
+{
+    int ret = ImGui::GetColumnIndex();
+    RETINT(ret);
+}
+APIFUNC_END
+
+APIFUNC(getcolumnwidth)
+{
+    int index = POPARG(as_int, -1);
+    float ret = ImGui::GetColumnWidth(index);
+    RETFLOAT(ret);
+}
+APIFUNC_END
+
+APIFUNC(setcolumnwidth)
+{
+    int index = POPARG(as_int, -1);
+    float width = POPARG(as_float, 1.0F);
+    ImGui::SetColumnWidth(index, width);
+}
+APIFUNC_END
+
+APIFUNC(getcolumnoffset)
+{
+    int index = POPARG(as_int, -1);
+    float ret = ImGui::GetColumnOffset(index);
+    RETFLOAT(ret);
+}
+APIFUNC_END
+
+APIFUNC(setcolumnoffset)
+{
+    int index = POPARG(as_int, -1);
+    float offset = POPARG(as_float, 0.0F);
+    ImGui::SetColumnOffset(index, offset);
+}
+APIFUNC_END
+
+APIFUNC(getcolumnscount)
+{
+    int ret = ImGui::GetColumnsCount();
+    RETINT(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2031,4 +2077,10 @@ void cl_define_bindings()
     define("input-float", clapi_inputfloat);
     define("drag-int", clapi_dragint);
     define("input-int", clapi_inputint);
+    define("get-column-index", clapi_getcolumnindex);
+    define("get-column-width", clapi_getcolumnwidth);
+    define("set-column-width", clapi_setcolumnwidth);
+    define("get-column-offset", clapi_getcolumnoffset);
+    define("set-column-offset", clapi_setcolumnoffset);
+    define("get-columns-count", clapi_getcolumnscount);
 }
