@@ -1788,6 +1788,105 @@ APIFUNC(inputfloat)
 }
 APIFUNC_END
 
+APIFUNC(dragint)
+{
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    float v_speed = POPARG(as_float, 1.0F);
+    int v_min = POPARG(as_int, 0);
+    int v_max = POPARG(as_int, 0);
+    const char *format = POPARG(as_text, "%d");
+    bool ret = false;
+    int v[4];
+    int n = 0;
+    cl_object sub = val;
+    while (cl_consp(sub) != ECL_NIL && n < 4) {
+        cl_object car = cl_car(sub);
+        if (!ecl_realp(car)) {
+            n = 0;
+            break;
+        }
+        v[n] = as_int(car);
+        n++;
+        sub = cl_cdr(sub);
+    }
+    switch (n) {
+    case 0:
+        break;
+    case 1:
+        ret = ImGui::DragInt(label, v, v_speed, v_min, v_max, format);
+        break;
+    case 2:
+        ret = ImGui::DragInt2(label, v, v_speed, v_min, v_max, format);
+        break;
+    case 3:
+        ret = ImGui::DragInt3(label, v, v_speed, v_min, v_max, format);
+        break;
+    case 4:
+        ret = ImGui::DragInt4(label, v, v_speed, v_min, v_max, format);
+        break;
+    default:
+        break;
+    }
+    sub = val;
+    for (int i = 0; i < n; i++) {
+        cl_object f = ecl_make_int32_t(v[i]);
+        cl_rplaca(sub, f);
+        sub = cl_cdr(sub);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(inputint)
+{
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    int step = POPARG(as_int, 1);
+    int step_fast = POPARG(as_int, 100);
+    ImGuiInputTextFlags flags = POPARG(as_imguiinputtextflags, ImGuiInputTextFlags_None);
+    bool ret = false;
+    int v[4];
+    int n = 0;
+    cl_object sub = val;
+    while (cl_consp(sub) != ECL_NIL && n < 4) {
+        cl_object car = cl_car(sub);
+        if (!ecl_realp(car)) {
+            n = 0;
+            break;
+        }
+        v[n] = as_int(car);
+        n++;
+        sub = cl_cdr(sub);
+    }
+    switch (n) {
+    case 0:
+        break;
+    case 1:
+        ret = ImGui::InputInt(label, v, step, step_fast, flags);
+        break;
+    case 2:
+        ret = ImGui::InputInt2(label, v, flags);
+        break;
+    case 3:
+        ret = ImGui::InputInt3(label, v, flags);
+        break;
+    case 4:
+        ret = ImGui::InputInt4(label, v, flags);
+        break;
+    default:
+        break;
+    }
+    sub = val;
+    for (int i = 0; i < n; i++) {
+        cl_object f = ecl_make_int32_t(v[i]);
+        cl_rplaca(sub, f);
+        sub = cl_cdr(sub);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -1930,4 +2029,6 @@ void cl_define_bindings()
     define("any-item-focused-p", clapi_isanyitemfocused);
     define("drag-float", clapi_dragfloat);
     define("input-float", clapi_inputfloat);
+    define("drag-int", clapi_dragint);
+    define("input-int", clapi_inputint);
 }
