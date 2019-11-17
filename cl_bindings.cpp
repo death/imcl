@@ -39,6 +39,8 @@ static cl_object as_object(cl_object obj)
 
 #define RETFLOAT(x) result = ecl_make_single_float((x))
 
+#define RETDOUBLE(x) result = ecl_make_double_float((x))
+
 #define RETINT(x) result = ecl_make_int32_t((x))
 
 #define RETBOOL(x) result = (x) ? ECL_T : ECL_NIL
@@ -2145,6 +2147,56 @@ APIFUNC(setcoloreditoptions)
 }
 APIFUNC_END
 
+APIFUNC(isrectvisible)
+{
+    bool ret = false;
+    if (nargs == 1) {
+        ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+        ret = ImGui::IsRectVisible(size);
+    } else if (nargs == 2) {
+        ImVec2 rect_min = POPARG(as_imvec2, ImVec2(0, 0));
+        ImVec2 rect_max = POPARG(as_imvec2, ImVec2(0, 0));
+        ret = ImGui::IsRectVisible(rect_min, rect_max);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(gettime)
+{
+    double time = ImGui::GetTime();
+    RETDOUBLE(time);
+}
+APIFUNC_END
+
+APIFUNC(getframecount)
+{
+    int ret = ImGui::GetFrameCount();
+    RETINT(ret);
+}
+APIFUNC_END
+
+APIFUNC2(calctextsize)
+{
+    const char *text = POPARG(as_text, "");
+    bool just_label_part = POPARG(as_bool, false);
+    float wrap_width = POPARG(as_float, -1.0F);
+    ImVec2 ret = ImGui::CalcTextSize(text, NULL, just_label_part, wrap_width);
+    RETIMVEC2(ret);
+}
+APIFUNC2_END
+
+APIFUNC2(calclistclipping)
+{
+    int nitems = POPARG(as_int, INT_MAX);
+    float height = POPARG(as_float, 1.0F);
+    int display_start = 0;
+    int display_end = 0;
+    ImGui::CalcListClipping(nitems, height, &display_start, &display_end);
+    result1 = ecl_make_int32_t(display_start);
+    result2 = ecl_make_int32_t(display_end);
+}
+APIFUNC2_END
 
 // Bindings definition
 
@@ -2311,4 +2363,9 @@ void cl_define_bindings()
     define("color-picker", clapi_colorpicker);
     define("color-button", clapi_colorbutton);
     define("set-color-edit-options", clapi_setcoloreditoptions);
+    define("rect-visible-p", clapi_isrectvisible);
+    define("get-time", clapi_gettime);
+    define("get-frame-count", clapi_getframecount);
+    define("calc-text-size", clapi_calctextsize);
+    define("calc-list-clipping", clapi_calclistclipping);
 }

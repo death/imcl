@@ -277,14 +277,6 @@ IMGUI_API void          PopClipRect();
 
 // Miscellaneous Utilities
 
-// test if rectangle (of given size, starting from cursor position) is visible / not clipped.
-IMGUI_API bool          IsRectVisible(const ImVec2& size);
-// test if rectangle (in screen space) is visible / not clipped. to perform coarse clipping on user's side.
-IMGUI_API bool          IsRectVisible(const ImVec2& rect_min, const ImVec2& rect_max);
-// get global imgui time. incremented by io.DeltaTime every frame.
-IMGUI_API double        GetTime();
-// get global imgui frame count. incremented by 1 every frame.
-IMGUI_API int           GetFrameCount();
 // this draw list will be the first rendering one. Useful to quickly draw shapes/text behind dear imgui contents.
 IMGUI_API ImDrawList*   GetBackgroundDrawList();
 // this draw list will be the last rendered one. Useful to quickly draw shapes/text over dear imgui contents.
@@ -296,9 +288,6 @@ IMGUI_API const char*   GetStyleColorName(ImGuiCol idx);
 // replace current window storage with our own (if you want to manipulate it yourself, typically clear subsection of it)
 IMGUI_API void          SetStateStorage(ImGuiStorage* storage);
 IMGUI_API ImGuiStorage* GetStateStorage();
-IMGUI_API ImVec2        CalcTextSize(const char* text, const char* text_end = NULL, bool hide_text_after_double_hash = false, float wrap_width = -1.0f);
-// calculate coarse clipping for large list of evenly sized items. Prefer using the ImGuiListClipper higher-level helper if you can.
-IMGUI_API void          CalcListClipping(int items_count, float items_height, int* out_items_display_start, int* out_items_display_end);
 // helper to create a child window / scrolling region that looks like a normal widget frame
 IMGUI_API bool          BeginChildFrame(ImGuiID id, const ImVec2& size, ImGuiWindowFlags flags = 0);
 // always call EndChildFrame() regardless of BeginChildFrame() return values (which indicates a collapsed/clipped window)
