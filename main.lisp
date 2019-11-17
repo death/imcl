@@ -586,30 +586,49 @@
 
 ;; Colors List
 
-(defclass colors-list-model ()
+(defclass colors-window-model ()
   ((colors :initform (coerce (loop for (name value) on *named-colors-plist* by #'cddr
                                    collect name)
                              'vector)
-           :reader colors-list-colors)
+           :reader colors-window-colors)
    (current :initform 0
-            :accessor colors-list-current)))
+            :accessor colors-window-current)
+   (color1 :initform (list 0.8 0.0 0.0)
+           :accessor colors-window-color1)
+   (color2 :initform (list 0.1 0.5 0.0 1.0)
+           :accessor colors-window-color2)))
 
-(defvar *colors-list-model*
-  (make-instance 'colors-list-model))
+(defvar *colors-window-model*
+  (make-instance 'colors-window-model))
 
-(defun show-colors-list (&optional (model *colors-list-model*))
-  (let ((colors (colors-list-colors model)))
-    (symbol-macrolet ((current (colors-list-current model)))
-      (window "Colors"
-        (begin-listbox "Color names" (length colors) 10)
-        (dotimes (i (length colors))
-          (let ((color (aref colors i)))
-            (when (selectable (string-capitalize (substitute #\Space #\- (symbol-name color)))
-                              (= i current))
-              (setf current i))))
-        (end-listbox)
-        (text-colored (aref colors current)
-                      "The Quick Brown Fox Jumped Over The Lazy Dog's Back")))))
+(defun show-colors-window (&optional (model *colors-window-model*))
+  (let ((colors (colors-window-colors model)))
+    (window "Colors"
+      (tab-bar
+        (tab-item "Named colors"
+          (symbol-macrolet ((current (colors-window-current model)))
+            (begin-listbox "Color names" (length colors) 10)
+            (dotimes (i (length colors))
+              (let ((color (aref colors i)))
+                (when (selectable (string-capitalize (substitute #\Space #\- (symbol-name color)))
+                                  (= i current))
+                  (setf current i))))
+            (end-listbox)
+            (color-button "Current color" (color (aref colors current)) :none '(20 20))
+            (same-line)
+            (text-colored (aref colors current)
+                          "The Quick Brown Fox Jumped Over The Lazy Dog's Back")))
+        (tab-item "Widgets"
+          (columns 2)
+          (set-column-width 0 300)
+          (set-column-width 1 400)
+          (color-picker "RGB picker" (colors-window-color1 model))
+          (next-column)
+          (color-edit "RGB edit" (colors-window-color1 model))
+          (color-edit "HSV edit" (colors-window-color1 model) '(:display-hsv :picker-hue-wheel))
+          (columns)
+          (separator)
+          (color-edit "RGBA edit" (colors-window-color2 model) '(:alpha-bar :no-inputs :alpha-preview)))))))
 
 ;; Menus
 

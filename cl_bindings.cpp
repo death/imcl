@@ -438,6 +438,42 @@ ImGuiInputTextFlags as_imguiinputtextflags(cl_object obj)
     return flags;
 }
 
+struct keyword_enum_descriptor imguicoloreditflags[] = {
+    {"NONE", ImGuiColorEditFlags_None},
+    {"NO-ALPHA", ImGuiColorEditFlags_NoAlpha},
+    {"NO-PICKER", ImGuiColorEditFlags_NoPicker},
+    {"NO-OPTIONS", ImGuiColorEditFlags_NoOptions},
+    {"NO-SMALL-PREVIEW", ImGuiColorEditFlags_NoSmallPreview},
+    {"NO-INPUTS", ImGuiColorEditFlags_NoInputs},
+    {"NO-TOOLTIP", ImGuiColorEditFlags_NoTooltip},
+    {"NO-LABEL", ImGuiColorEditFlags_NoLabel},
+    {"NO-SIDE-PREVIEW", ImGuiColorEditFlags_NoSidePreview},
+    {"NO-DRAG-DROP", ImGuiColorEditFlags_NoDragDrop},
+    {"ALPHA-BAR", ImGuiColorEditFlags_AlphaBar},
+    {"ALPHA-PREVIEW", ImGuiColorEditFlags_AlphaPreview},
+    {"ALPHA-PREVIEW-HALF", ImGuiColorEditFlags_AlphaPreviewHalf},
+    {"HDR", ImGuiColorEditFlags_HDR},
+    {"DISPLAY-RGB", ImGuiColorEditFlags_DisplayRGB},
+    {"DISPLAY-HSV", ImGuiColorEditFlags_DisplayHSV},
+    {"DISPLAY-HEX", ImGuiColorEditFlags_DisplayHex},
+    {"UINT8", ImGuiColorEditFlags_Uint8},
+    {"FLOAT", ImGuiColorEditFlags_Float},
+    {"PICKER-HUE-BAR", ImGuiColorEditFlags_PickerHueBar},
+    {"PICKER-HUE-WHEEL", ImGuiColorEditFlags_PickerHueWheel},
+    {"INPUT-RGB", ImGuiColorEditFlags_InputRGB},
+    {"INPUT-HSV", ImGuiColorEditFlags_InputHSV},
+    {"OPTIONS-DEFAULT", ImGuiColorEditFlags__OptionsDefault},
+};
+
+ImGuiColorEditFlags as_imguicoloreditflags(cl_object obj)
+{
+    ImGuiColorEditFlags flags = ImGuiColorEditFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguicoloreditflags, LENGTHOF(imguicoloreditflags));
+    }
+    return flags;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -2012,6 +2048,104 @@ APIFUNC(setitemallowoverlap)
 }
 APIFUNC_END
 
+APIFUNC(coloredit)
+{
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    ImGuiColorEditFlags flags = POPARG(as_imguicoloreditflags, ImGuiColorEditFlags_None);
+    bool ret = false;
+    float v[4];
+    int n = 0;
+    cl_object sub = val;
+    while (cl_consp(sub) != ECL_NIL && n < 4) {
+        cl_object car = cl_car(sub);
+        if (!ecl_realp(car)) {
+            n = 0;
+            break;
+        }
+        v[n] = as_float(car);
+        n++;
+        sub = cl_cdr(sub);
+    }
+    switch (n) {
+    case 3:
+        ret = ImGui::ColorEdit3(label, v, flags);
+        break;
+    case 4:
+        ret = ImGui::ColorEdit4(label, v, flags);
+        break;
+    default:
+        break;
+    }
+    sub = val;
+    for (int i = 0; i < n; i++) {
+        cl_object f = ecl_make_single_float(v[i]);
+        cl_rplaca(sub, f);
+        sub = cl_cdr(sub);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(colorpicker)
+{
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    ImGuiColorEditFlags flags = POPARG(as_imguicoloreditflags, ImGuiColorEditFlags_None);
+    bool ret = false;
+    float v[4];
+    int n = 0;
+    cl_object sub = val;
+    while (cl_consp(sub) != ECL_NIL && n < 4) {
+        cl_object car = cl_car(sub);
+        if (!ecl_realp(car)) {
+            n = 0;
+            break;
+        }
+        v[n] = as_float(car);
+        n++;
+        sub = cl_cdr(sub);
+    }
+    switch (n) {
+    case 3:
+        ret = ImGui::ColorPicker3(label, v, flags);
+        break;
+    case 4:
+        // TODO: ref_col
+        ret = ImGui::ColorPicker4(label, v, flags, NULL);
+        break;
+    default:
+        break;
+    }
+    sub = val;
+    for (int i = 0; i < n; i++) {
+        cl_object f = ecl_make_single_float(v[i]);
+        cl_rplaca(sub, f);
+        sub = cl_cdr(sub);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(colorbutton)
+{
+    const char *desc_id = POPARG(as_text, "desc");
+    ImVec4 col = POPARG(as_imvec4, ImVec4(0, 0, 0, 0));
+    ImGuiColorEditFlags flags = POPARG(as_imguicoloreditflags, ImGuiColorEditFlags_None);
+    ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+    bool ret = ImGui::ColorButton(desc_id, col, flags, size);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(setcoloreditoptions)
+{
+    ImGuiColorEditFlags flags = POPARG(as_imguicoloreditflags, ImGuiColorEditFlags__OptionsDefault);
+    ImGui::SetColorEditOptions(flags);
+}
+APIFUNC_END
+
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2173,4 +2307,8 @@ void cl_define_bindings()
     define("get-item-rect-max", clapi_getitemrectmax);
     define("get-item-rect-size", clapi_getitemrectsize);
     define("set-item-allow-overlap", clapi_setitemallowoverlap);
+    define("color-edit", clapi_coloredit);
+    define("color-picker", clapi_colorpicker);
+    define("color-button", clapi_colorbutton);
+    define("set-color-edit-options", clapi_setcoloreditoptions);
 }
