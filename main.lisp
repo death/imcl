@@ -712,6 +712,53 @@
                (text (format nil "~D, ~D" x y)))))
       (end))))
 
+;; Info
+
+(defvar *info-window-model*
+  (make-hash-table))
+
+(defun show-info-window ()
+  (flet ((toggle (thing)
+           (if (gethash thing *info-window-model*)
+               (remhash thing *info-window-model*)
+               (setf (gethash thing *info-window-model*) t)))
+         (enabledp (thing)
+           (gethash thing *info-window-model*))
+         (disable (thing)
+           (remhash thing *info-window-model*)))
+    (window "Information"
+      (when (button "About")
+        (toggle :about))
+      (same-line)
+      (when (button "Metrics")
+        (toggle :metrics))
+      (tab-bar
+        (tab-item "Style Editor"
+          (show-style-editor))
+        (tab-item "Others"
+          (text "Version")
+          (indent)
+          (text (imgui-version))
+          (unindent)
+          (text "Style selector")
+          (indent)
+          (show-style-selector "Current style")
+          (unindent)
+          (text "Font selector")
+          (indent)
+          (show-font-selector "Current font")
+          (unindent)
+          (text "User guide")
+          (indent)
+          (show-user-guide)
+          (unindent)))
+      (when (enabledp :about)
+        (when (not (show-about-window))
+          (disable :about)))
+      (when (enabledp :metrics)
+        (when (not (show-metrics-window))
+          (disable :metrics))))))
+
 ;; Apps
 
 ;; For lack of a better name, I call them apps.  Currently they are

@@ -1933,6 +1933,59 @@ APIFUNC(getcolumnscount)
 }
 APIFUNC_END
 
+APIFUNC(showaboutwindow)
+{
+    bool open = true;
+    ImGui::ShowAboutWindow(&open);
+    RETBOOL(open);
+}
+APIFUNC_END
+
+APIFUNC(showmetricswindow)
+{
+    bool open = true;
+    ImGui::ShowMetricsWindow(&open);
+    RETBOOL(open);
+}
+APIFUNC_END
+
+APIFUNC(showstyleeditor)
+{
+    // TODO: take style argument
+    ImGuiStyle *style = NULL;
+    ImGui::ShowStyleEditor(style);
+}
+APIFUNC_END
+
+APIFUNC(showstyleselector)
+{
+    const char *label = POPARG(as_text, "label");
+    bool ret = ImGui::ShowStyleSelector(label);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(showfontselector)
+{
+    const char *label = POPARG(as_text, "label");
+    ImGui::ShowFontSelector(label);
+}
+APIFUNC_END
+
+APIFUNC(showuserguide)
+{
+    ImGui::ShowUserGuide();
+}
+APIFUNC_END
+
+APIFUNC(getversion)
+{
+    const char *version = ImGui::GetVersion();
+    RETSTRING(version);
+}
+APIFUNC_END
+
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2083,4 +2136,11 @@ void cl_define_bindings()
     define("get-column-offset", clapi_getcolumnoffset);
     define("set-column-offset", clapi_setcolumnoffset);
     define("get-columns-count", clapi_getcolumnscount);
+    define("show-about-window", clapi_showaboutwindow);
+    define("show-metrics-window", clapi_showmetricswindow);
+    define("show-style-editor", clapi_showstyleeditor);
+    define("show-style-selector", clapi_showstyleselector);
+    define("show-font-selector", clapi_showfontselector);
+    define("show-user-guide", clapi_showuserguide);
+    define("imgui-version", clapi_getversion);
 }
