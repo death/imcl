@@ -25,7 +25,6 @@
 //   Windows Utilities
 //   Widgets: Input with Keyboard
 //   Widgets: Trees
-//   Item/Widgets Utiltiies
 //   Miscellaneous Utilities
 //   Inputs Utilities
 //
@@ -289,20 +288,6 @@ IMGUI_API const ImGuiPayload*   GetDragDropPayload();
 
 IMGUI_API void          PushClipRect(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect);
 IMGUI_API void          PopClipRect();
-
-// Item/Widgets Utilities
-
-// - Most of the functions are referring to the last/previous item we submitted.
-// - See Demo Window under "Widgets->Querying Status" for an interactive visualization of most of those functions.
-
-// get upper-left bounding rectangle of the last item (screen space)
-IMGUI_API ImVec2        GetItemRectMin();
-// get lower-right bounding rectangle of the last item (screen space)
-IMGUI_API ImVec2        GetItemRectMax();
-// get size of last item
-IMGUI_API ImVec2        GetItemRectSize();
-// allow last item to be overlapped by a subsequent item. sometimes useful with invisible buttons, selectables, etc. to catch unused area.
-IMGUI_API void          SetItemAllowOverlap();
 
 // Miscellaneous Utilities
 

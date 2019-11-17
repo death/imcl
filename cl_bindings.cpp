@@ -1985,6 +1985,32 @@ APIFUNC(getversion)
 }
 APIFUNC_END
 
+APIFUNC2(getitemrectmin)
+{
+    ImVec2 ret = ImGui::GetItemRectMin();
+    RETIMVEC2(ret);
+}
+APIFUNC2_END
+
+APIFUNC2(getitemrectmax)
+{
+    ImVec2 ret = ImGui::GetItemRectMax();
+    RETIMVEC2(ret);
+}
+APIFUNC2_END
+
+APIFUNC2(getitemrectsize)
+{
+    ImVec2 ret = ImGui::GetItemRectSize();
+    RETIMVEC2(ret);
+}
+APIFUNC2_END
+
+APIFUNC(setitemallowoverlap)
+{
+    ImGui::SetItemAllowOverlap();
+}
+APIFUNC_END
 
 // Bindings definition
 
@@ -2143,4 +2169,8 @@ void cl_define_bindings()
     define("show-font-selector", clapi_showfontselector);
     define("show-user-guide", clapi_showuserguide);
     define("imgui-version", clapi_getversion);
+    define("get-item-rect-min", clapi_getitemrectmin);
+    define("get-item-rect-max", clapi_getitemrectmax);
+    define("get-item-rect-size", clapi_getitemrectsize);
+    define("set-item-allow-overlap", clapi_setitemallowoverlap);
 }
