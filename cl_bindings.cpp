@@ -502,6 +502,45 @@ ImGuiTreeNodeFlags as_imguitreenodeflags(cl_object obj)
     return flags;
 }
 
+struct keyword_enum_descriptor imguitabbarflags[] = {
+    {"NONE", ImGuiTabBarFlags_None},
+    {"REORDERABLE", ImGuiTabBarFlags_Reorderable},
+    {"AUTO-SELECT-NEW-TABS", ImGuiTabBarFlags_AutoSelectNewTabs},
+    {"TAB-LIST-POPUP-BUTTON", ImGuiTabBarFlags_TabListPopupButton},
+    {"NO-CLOSE-WITH-MIDDLE-MOUSE-BUTTON", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton},
+    {"NO-TAB-LIST-SCROLLING-BUTTONS", ImGuiTabBarFlags_NoTabListScrollingButtons},
+    {"NO-TOOLTIP", ImGuiTabBarFlags_NoTooltip},
+    {"FITTING-POLICY-RESIZEDOWN", ImGuiTabBarFlags_FittingPolicyResizeDown},
+    {"FITTING-POLICY-SCROLL", ImGuiTabBarFlags_FittingPolicyScroll},
+    {"FITTING-POLICY-DEFAULT", ImGuiTabBarFlags_FittingPolicyDefault_},
+};
+
+ImGuiTabBarFlags as_imguitabbarflags(cl_object obj)
+{
+    ImGuiTabBarFlags flags = ImGuiTabBarFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguitabbarflags, LENGTHOF(imguitabbarflags));
+    }
+    return flags;
+}
+
+struct keyword_enum_descriptor imguitabitemflags[] = {
+    {"NONE", ImGuiTabItemFlags_None},
+    {"UNSAVED-DOCUMENT", ImGuiTabItemFlags_UnsavedDocument},
+    {"SET-SELECTED", ImGuiTabItemFlags_SetSelected},
+    {"NO-CLOSE-WITH-MIDDLE-MOUSE-BUTTON", ImGuiTabItemFlags_NoCloseWithMiddleMouseButton},
+    {"NO-PUSH-ID", ImGuiTabItemFlags_NoPushId},
+};
+
+ImGuiTabBarFlags as_imguitabitemflags(cl_object obj)
+{
+    ImGuiTabItemFlags flags = ImGuiTabItemFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguitabitemflags, LENGTHOF(imguitabitemflags));
+    }
+    return flags;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -936,8 +975,7 @@ APIFUNC_END
 APIFUNC(begintabbar)
 {
     const char *id = POPARG(as_text, "tabid");
-    // TODO: flags arg
-    ImGuiTabBarFlags flags = 0;
+    ImGuiTabBarFlags flags = POPARG(as_imguitabbarflags, ImGuiTabBarFlags_None);
     bool ret = ImGui::BeginTabBar(id, flags);
     RETBOOL(ret);
 }
@@ -952,9 +990,8 @@ APIFUNC_END
 APIFUNC(begintabitem)
 {
     const char *label = POPARG(as_text, "tabitem");
+    ImGuiTabItemFlags flags = POPARG(as_imguitabitemflags, ImGuiTabItemFlags_None);
     // TODO: p_open arg
-    // TODO: flags arg
-    ImGuiTabItemFlags flags = 0;
     bool ret = ImGui::BeginTabItem(label, NULL, flags);
     RETBOOL(ret);
 }
