@@ -2254,6 +2254,89 @@ APIFUNC(setnexttreenodeopen)
 }
 APIFUNC_END
 
+APIFUNC(openpopup)
+{
+    const char *str_id = POPARG(as_text, "id");
+    ImGui::OpenPopup(str_id);
+}
+APIFUNC_END
+
+APIFUNC(beginpopup)
+{
+    const char *str_id = POPARG(as_text, "id");
+    ImGuiWindowFlags flags = POPARG(as_imguiwindowflags, ImGuiWindowFlags_None);
+    bool ret = ImGui::BeginPopup(str_id, flags);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(beginpopupcontextitem)
+{
+    const char *str_id = POPARG(as_text, NULL);
+    int mouse_button = POPARG(as_int, 1);
+    bool ret = ImGui::BeginPopupContextItem(str_id, mouse_button);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(beginpopupcontextwindow)
+{
+    const char *str_id = POPARG(as_text, NULL);
+    int mouse_button = POPARG(as_int, 1);
+    bool also_over_items = POPARG(as_bool, true);
+    bool ret = ImGui::BeginPopupContextWindow(str_id, mouse_button, also_over_items);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(beginpopupcontextvoid)
+{
+    const char *str_id = POPARG(as_text, NULL);
+    int mouse_button = POPARG(as_int, 1);
+    bool ret = ImGui::BeginPopupContextVoid(str_id, mouse_button);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(beginpopupmodal)
+{
+    const char *name = POPARG(as_text, "name");
+    ImGuiWindowFlags flags = POPARG(as_imguiwindowflags, ImGuiWindowFlags_None);
+    // TODO: figure out p_open
+    bool ret = ImGui::BeginPopupModal(name, NULL, flags);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(endpopup)
+{
+    ImGui::EndPopup();
+}
+APIFUNC_END
+
+APIFUNC(openpopuponitemclick)
+{
+    const char *str_id = POPARG(as_text, NULL);
+    int mouse_button = POPARG(as_int, 1);
+    bool ret = ImGui::OpenPopupOnItemClick(str_id, mouse_button);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(ispopupopen)
+{
+    const char *str_id = POPARG(as_text, "id");
+    bool ret = ImGui::IsPopupOpen(str_id);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(closecurrentpopup)
+{
+    ImGui::CloseCurrentPopup();
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2428,4 +2511,14 @@ void cl_define_bindings()
     define("tree-advance-to-label-pos", clapi_treeadvancetolabelpos);
     define("get-tree-node-to-label-spacing", clapi_gettreenodetolabelspacing);
     define("set-next-tree-node-open", clapi_setnexttreenodeopen);
+    define("open-popup", clapi_openpopup);
+    define("begin-popup", clapi_beginpopup);
+    define("begin-popup-context-item", clapi_beginpopupcontextitem);
+    define("begin-popup-context-window", clapi_beginpopupcontextwindow);
+    define("begin-popup-context-void", clapi_beginpopupcontextvoid);
+    define("begin-popup-modal", clapi_beginpopupmodal);
+    define("end-popup", clapi_endpopup);
+    define("open-popup-on-item-click", clapi_openpopuponitemclick);
+    define("popup-open-p", clapi_ispopupopen);
+    define("close-current-popup", clapi_closecurrentpopup);
 }
