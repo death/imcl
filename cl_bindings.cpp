@@ -476,6 +476,32 @@ ImGuiColorEditFlags as_imguicoloreditflags(cl_object obj)
     return flags;
 }
 
+struct keyword_enum_descriptor imguitreenodeflags[] = {
+    {"NONE", ImGuiTreeNodeFlags_None},
+    {"SELECTED", ImGuiTreeNodeFlags_Selected},
+    {"FRAMED", ImGuiTreeNodeFlags_Framed},
+    {"ALLOW-ITEM-OVERLAP", ImGuiTreeNodeFlags_AllowItemOverlap},
+    {"NO-TREE-PUSH-ON-OPEN", ImGuiTreeNodeFlags_NoTreePushOnOpen},
+    {"NO-AUTO-OPEN-ON-LOG", ImGuiTreeNodeFlags_NoAutoOpenOnLog},
+    {"DEFAULT-OPEN", ImGuiTreeNodeFlags_DefaultOpen},
+    {"OPEN-ON-DOUBLE-CLICK", ImGuiTreeNodeFlags_OpenOnDoubleClick},
+    {"OPEN-ON-ARROW", ImGuiTreeNodeFlags_OpenOnArrow},
+    {"LEAF", ImGuiTreeNodeFlags_Leaf},
+    {"BULLET", ImGuiTreeNodeFlags_Bullet},
+    {"FRAME-PADDING", ImGuiTreeNodeFlags_FramePadding},
+    {"NAV-LEFT-JUMPS-BACK-HERE", ImGuiTreeNodeFlags_NavLeftJumpsBackHere},
+    {"COLLAPSING-HEADER", ImGuiTreeNodeFlags_CollapsingHeader},
+};
+
+ImGuiTreeNodeFlags as_imguitreenodeflags(cl_object obj)
+{
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguitreenodeflags, LENGTHOF(imguitreenodeflags));
+    }
+    return flags;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -589,7 +615,8 @@ APIFUNC_END
 APIFUNC(collapsingheader)
 {
     const char *label = POPARG(as_text, "CollapsingHeader");
-    bool ret = ImGui::CollapsingHeader(label);
+    ImGuiTreeNodeFlags flags = POPARG(as_imguitreenodeflags, ImGuiTreeNodeFlags_None);
+    bool ret = ImGui::CollapsingHeader(label, flags);
     RETBOOL(ret);
 }
 APIFUNC_END
@@ -603,7 +630,8 @@ APIFUNC_END
 APIFUNC(treenode)
 {
     const char *label = POPARG(as_text, "TreeNode");
-    bool ret = ImGui::TreeNode(label);
+    ImGuiTreeNodeFlags flags = POPARG(as_imguitreenodeflags, ImGuiTreeNodeFlags_None);
+    bool ret = ImGui::TreeNodeEx(label, flags);
     RETBOOL(ret);
 }
 APIFUNC_END
@@ -2198,6 +2226,34 @@ APIFUNC2(calclistclipping)
 }
 APIFUNC2_END
 
+APIFUNC(treepush)
+{
+    const char *str_id = POPARG(as_text, "id");
+    ImGui::TreePush(str_id);
+}
+APIFUNC_END
+
+APIFUNC(treeadvancetolabelpos)
+{
+    ImGui::TreeAdvanceToLabelPos();
+}
+APIFUNC_END
+
+APIFUNC(gettreenodetolabelspacing)
+{
+    float ret = ImGui::GetTreeNodeToLabelSpacing();
+    RETFLOAT(ret);
+}
+APIFUNC_END
+
+APIFUNC(setnexttreenodeopen)
+{
+    bool is_open = POPARG(as_bool, true);
+    ImGuiCond cond = POPARG(as_imguicond, ImGuiCond_Always);
+    ImGui::SetNextTreeNodeOpen(is_open, cond);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2368,4 +2424,8 @@ void cl_define_bindings()
     define("get-frame-count", clapi_getframecount);
     define("calc-text-size", clapi_calctextsize);
     define("calc-list-clipping", clapi_calclistclipping);
+    define("tree-push", clapi_treepush);
+    define("tree-advance-to-label-pos", clapi_treeadvancetolabelpos);
+    define("get-tree-node-to-label-spacing", clapi_gettreenodetolabelspacing);
+    define("set-next-tree-node-open", clapi_setnexttreenodeopen);
 }
