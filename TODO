@@ -3,7 +3,6 @@
 // Small tasks
 //
 //   Context creation and access
-//   Clipping
 //
 // Medium tasks
 //
@@ -189,11 +188,6 @@ IMGUI_API const ImGuiPayload*   AcceptDragDropPayload(const char* type, ImGuiDra
 IMGUI_API void                  EndDragDropTarget();
 // peek directly into the current payload from anywhere. may return NULL. use ImGuiPayload::IsDataType() to test for the payload type.
 IMGUI_API const ImGuiPayload*   GetDragDropPayload();
-
-// Clipping
-
-IMGUI_API void          PushClipRect(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect);
-IMGUI_API void          PopClipRect();
 
 // Miscellaneous Utilities
 

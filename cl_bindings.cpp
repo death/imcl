@@ -2374,6 +2374,21 @@ APIFUNC(closecurrentpopup)
 }
 APIFUNC_END
 
+APIFUNC(pushcliprect)
+{
+    ImVec2 rect_min = POPARG(as_imvec2, ImVec2(0, 0));
+    ImVec2 rect_max = POPARG(as_imvec2, ImVec2(0, 0));
+    bool intersect = POPARG(as_bool, true);
+    ImGui::PushClipRect(rect_min, rect_max, intersect);
+}
+APIFUNC_END
+
+APIFUNC(popcliprect)
+{
+    ImGui::PopClipRect();
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2558,4 +2573,6 @@ void cl_define_bindings()
     define("open-popup-on-item-click", clapi_openpopuponitemclick);
     define("popup-open-p", clapi_ispopupopen);
     define("close-current-popup", clapi_closecurrentpopup);
+    define("push-clip-rect", clapi_pushcliprect);
+    define("pop-clip-rect", clapi_popcliprect);
 }
