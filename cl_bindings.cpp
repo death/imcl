@@ -2415,6 +2415,48 @@ APIFUNC(endchildframe)
 }
 APIFUNC_END
 
+APIFUNC(rgbtohsv)
+{
+    cl_object rgb = POPARG(as_object, ECL_NIL);
+    cl_object ret = ECL_NIL;
+    if (rgb != ECL_NIL) {
+        float r = as_float(cl_first(rgb));
+        float g = as_float(cl_second(rgb));
+        float b = as_float(cl_third(rgb));
+        float h = 0.0F;
+        float s = 0.0F;
+        float v = 0.0F;
+        ImGui::ColorConvertRGBtoHSV(r, g, b, h, s, v);
+        ret = cl_list(3,
+                      ecl_make_single_float(h),
+                      ecl_make_single_float(s),
+                      ecl_make_single_float(v));
+    }
+    result = ret;
+}
+APIFUNC_END
+
+APIFUNC(hsvtorgb)
+{
+    cl_object hsv = POPARG(as_object, ECL_NIL);
+    cl_object ret = ECL_NIL;
+    if (hsv != ECL_NIL) {
+        float h = as_float(cl_first(hsv));
+        float s = as_float(cl_second(hsv));
+        float v = as_float(cl_third(hsv));
+        float r = 0.0F;
+        float g = 0.0F;
+        float b = 0.0F;
+        ImGui::ColorConvertHSVtoRGB(h, s, v, r, g, b);
+        ret = cl_list(3,
+                      ecl_make_single_float(r),
+                      ecl_make_single_float(g),
+                      ecl_make_single_float(b));
+    }
+    result = ret;
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2604,4 +2646,6 @@ void cl_define_bindings()
     define("get-id", clapi_getid);
     define("begin-child-frame", clapi_beginchildframe);
     define("end-child-frame", clapi_endchildframe);
+    define("rgb-to-hsv", clapi_rgbtohsv);
+    define("hsv-to-rgb", clapi_hsvtorgb);
 }

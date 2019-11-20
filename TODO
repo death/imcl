@@ -13,7 +13,6 @@
 //   Widgets: Data Plotting
 //   Tab Bars, Tabs
 //   Drag and Drop
-//   Color Utilities
 //
 // Large tasks
 //
@@ -177,13 +176,6 @@ IMGUI_API const char*   GetStyleColorName(ImGuiCol idx);
 // replace current window storage with our own (if you want to manipulate it yourself, typically clear subsection of it)
 IMGUI_API void          SetStateStorage(ImGuiStorage* storage);
 IMGUI_API ImGuiStorage* GetStateStorage();
-
-// Color Utilities
-
-IMGUI_API ImVec4        ColorConvertU32ToFloat4(ImU32 in);
-IMGUI_API ImU32         ColorConvertFloat4ToU32(const ImVec4& in);
-IMGUI_API void          ColorConvertRGBtoHSV(float r, float g, float b, float& out_h, float& out_s, float& out_v);
-IMGUI_API void          ColorConvertHSVtoRGB(float h, float s, float v, float& out_r, float& out_g, float& out_b);
 
 // Inputs Utilities
 
