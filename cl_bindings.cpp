@@ -2399,6 +2399,22 @@ APIFUNC(getid)
 }
 APIFUNC_END
 
+APIFUNC(beginchildframe)
+{
+    ImGuiID id = POPARG(as_uint, 0);
+    ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+    ImGuiWindowFlags flags = POPARG(as_imguiwindowflags, ImGuiWindowFlags_None);
+    bool ret = ImGui::BeginChildFrame(id, size, flags);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(endchildframe)
+{
+    ImGui::EndChildFrame();
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2586,4 +2602,6 @@ void cl_define_bindings()
     define("push-clip-rect", clapi_pushcliprect);
     define("pop-clip-rect", clapi_popcliprect);
     define("get-id", clapi_getid);
+    define("begin-child-frame", clapi_beginchildframe);
+    define("end-child-frame", clapi_endchildframe);
 }
