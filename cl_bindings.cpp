@@ -43,6 +43,8 @@ static cl_object as_object(cl_object obj)
 
 #define RETINT(x) result = ecl_make_int32_t((x))
 
+#define RETUINT(x) result = ecl_make_uint32_t((x))
+
 #define RETBOOL(x) result = (x) ? ECL_T : ECL_NIL
 
 #define RETSTRING(x) result = ecl_make_simple_base_string((x), -1)
@@ -2389,6 +2391,14 @@ APIFUNC(popcliprect)
 }
 APIFUNC_END
 
+APIFUNC(getid)
+{
+    const char *str_id = POPARG(as_text, "id");
+    ImGuiID id = ImGui::GetID(str_id);
+    RETUINT(id);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2575,4 +2585,5 @@ void cl_define_bindings()
     define("close-current-popup", clapi_closecurrentpopup);
     define("push-clip-rect", clapi_pushcliprect);
     define("pop-clip-rect", clapi_popcliprect);
+    define("get-id", clapi_getid);
 }
