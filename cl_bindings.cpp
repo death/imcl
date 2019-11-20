@@ -78,7 +78,7 @@ static cl_object as_object(cl_object obj)
     result1 = ecl_make_single_float((v).x);     \
     result2 = ecl_make_single_float((v).y);
 
-// Translating keywords to enum values
+// Translating keywords to enum values and vice versa
 
 struct keyword_enum_descriptor
 {
@@ -100,6 +100,19 @@ int keyword_enum_value(cl_object keyword,
     }
     FEerror("keyword not in enum descriptors list", 0);
     return 0;
+}
+
+cl_object enum_value_keyword(int value,
+                             struct keyword_enum_descriptor *descriptors,
+                             int size)
+{
+    for (int i = 0; i < size; i++) {
+        if (descriptors[i].value == value) {
+            return ecl_make_keyword(descriptors[i].keyword_name);
+        }
+    }
+    FEerror("value not in enum descriptors list", 0);
+    return ECL_NIL;
 }
 
 int keyword_flags_value(cl_object flags, struct keyword_enum_descriptor *descriptors, int size)
@@ -541,6 +554,60 @@ ImGuiTabBarFlags as_imguitabitemflags(cl_object obj)
         flags = keyword_flags_value(obj, imguitabitemflags, LENGTHOF(imguitabitemflags));
     }
     return flags;
+}
+
+struct keyword_enum_descriptor imguikey[] = {
+    {"TAB", ImGuiKey_Tab},
+    {"LEFT-ARROW", ImGuiKey_LeftArrow},
+    {"RIGHT-ARROW", ImGuiKey_RightArrow},
+    {"UP-ARROW", ImGuiKey_UpArrow},
+    {"DOWN-ARROW", ImGuiKey_DownArrow},
+    {"PAGE-UP", ImGuiKey_PageUp},
+    {"PAGE-DOWN", ImGuiKey_PageDown},
+    {"HOME", ImGuiKey_Home},
+    {"END", ImGuiKey_End},
+    {"INSERT", ImGuiKey_Insert},
+    {"DELETE", ImGuiKey_Delete},
+    {"BACKSPACE", ImGuiKey_Backspace},
+    {"SPACE", ImGuiKey_Space},
+    {"ENTER", ImGuiKey_Enter},
+    {"ESCAPE", ImGuiKey_Escape},
+    {"A", ImGuiKey_A},
+    {"C", ImGuiKey_C},
+    {"V", ImGuiKey_V},
+    {"X", ImGuiKey_X},
+    {"Y", ImGuiKey_Y},
+    {"Z", ImGuiKey_Z},
+};
+
+ImGuiKey as_imguikey(cl_object obj)
+{
+    ImGuiKey key = ImGuiKey_Enter;
+    if (obj != ECL_NIL) {
+        key = keyword_enum_value(obj, imguikey, LENGTHOF(imguikey));
+    }
+    return key;
+}
+
+struct keyword_enum_descriptor imguimousecursor[] = {
+    {"NONE", ImGuiMouseCursor_None},
+    {"ARROW", ImGuiMouseCursor_Arrow},
+    {"TEXT-INPUT", ImGuiMouseCursor_TextInput},
+    {"RESIZE-ALL", ImGuiMouseCursor_ResizeAll},
+    {"RESIZE-NS", ImGuiMouseCursor_ResizeNS},
+    {"RESIZE-EW", ImGuiMouseCursor_ResizeEW},
+    {"RESIZE-NESW", ImGuiMouseCursor_ResizeNESW},
+    {"RESIZE-NWSE", ImGuiMouseCursor_ResizeNWSE},
+    {"HAND", ImGuiMouseCursor_Hand},
+};
+
+ImGuiMouseCursor as_imguimousecursor(cl_object obj)
+{
+    ImGuiMouseCursor cursor = ImGuiMouseCursor_Arrow;
+    if (obj != ECL_NIL) {
+        cursor = keyword_enum_value(obj, imguimousecursor, LENGTHOF(imguimousecursor));
+    }
+    return cursor;
 }
 
 // The actual bindings
@@ -2457,6 +2524,178 @@ APIFUNC(hsvtorgb)
 }
 APIFUNC_END
 
+APIFUNC(getkeyindex)
+{
+    ImGuiKey key = POPARG(as_imguikey, ImGuiKey_Enter);
+    int ret = ImGui::GetKeyIndex(key);
+    RETINT(ret);
+}
+APIFUNC_END
+
+APIFUNC(iskeydown)
+{
+    int index = POPARG(as_int, 0);
+    bool ret = ImGui::IsKeyDown(index);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(iskeypressed)
+{
+    int index = POPARG(as_int, 0);
+    bool repeat = POPARG(as_bool, true);
+    bool ret = ImGui::IsKeyPressed(index, repeat);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(iskeyreleased)
+{
+    int index = POPARG(as_int, 0);
+    bool ret = ImGui::IsKeyPressed(index);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(getkeypressedamount)
+{
+    int index = POPARG(as_int, 0);
+    float delay = POPARG(as_float, 1.0F);
+    float rate = POPARG(as_float, 0.1F);
+    int ret = ImGui::GetKeyPressedAmount(index, delay, rate);
+    RETINT(ret);
+}
+APIFUNC_END
+
+APIFUNC(ismousedown)
+{
+    int button = POPARG(as_int, 0);
+    bool ret = ImGui::IsMouseDown(button);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(isanymousedown)
+{
+    bool ret = ImGui::IsAnyMouseDown();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(ismouseclicked)
+{
+    int button = POPARG(as_int, 0);
+    bool repeat = POPARG(as_bool, false);
+    bool ret = ImGui::IsMouseClicked(button, repeat);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(ismousedoubleclicked)
+{
+    int button = POPARG(as_int, 0);
+    bool ret = ImGui::IsMouseDoubleClicked(button);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(ismousereleased)
+{
+    int button = POPARG(as_int, 0);
+    bool ret = ImGui::IsMouseReleased(button);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(ismousedragging)
+{
+    int button = POPARG(as_int, 0);
+    float lock_threshold = POPARG(as_float, -1.0F);
+    bool ret = ImGui::IsMouseDragging(button, lock_threshold);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(ismousehoveringrect)
+{
+    ImVec2 rect_min = POPARG(as_imvec2, ImVec2(0, 0));
+    ImVec2 rect_max = POPARG(as_imvec2, ImVec2(0, 0));
+    bool clip = POPARG(as_bool, true);
+    bool ret = ImGui::IsMouseHoveringRect(rect_min, rect_max, clip);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(ismouseposvalid)
+{
+    ImVec2 pos = POPARG(as_imvec2, ImVec2(-FLT_MAX, -FLT_MAX));
+    bool ret = ImGui::IsMousePosValid(&pos);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC2(getmousepos)
+{
+    ImVec2 pos = ImGui::GetMousePos();
+    if (!ImGui::IsMousePosValid(&pos)) {
+        // Nicer than -FLT_MAX.
+        pos.x = pos.y = -1.0F;
+    }
+    RETIMVEC2(pos);
+}
+APIFUNC2_END
+
+APIFUNC2(getmouseposonopeningcurrentpopup)
+{
+    ImVec2 pos = ImGui::GetMousePosOnOpeningCurrentPopup();
+    RETIMVEC2(pos);
+}
+APIFUNC2_END
+
+APIFUNC2(getmousedragdelta)
+{
+    int button = POPARG(as_int, 0);
+    float lock_threshold = POPARG(as_float, -1.0F);
+    ImVec2 delta = ImGui::GetMouseDragDelta(button, lock_threshold);
+    RETIMVEC2(delta);
+}
+APIFUNC2_END
+
+APIFUNC(resetmousedragdelta)
+{
+    int button = POPARG(as_int, 0);
+    ImGui::ResetMouseDragDelta(button);
+}
+APIFUNC_END
+
+APIFUNC(getmousecursor)
+{
+    ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
+    result = enum_value_keyword(cursor, imguimousecursor, LENGTHOF(imguimousecursor));
+}
+APIFUNC_END
+
+APIFUNC(setmousecursor)
+{
+    ImGuiMouseCursor cursor = POPARG(as_imguimousecursor, ImGuiMouseCursor_Arrow);
+    ImGui::SetMouseCursor(cursor);
+}
+APIFUNC_END
+
+APIFUNC(capturekeyboardfromapp)
+{
+    bool capture = POPARG(as_bool, true);
+    ImGui::CaptureKeyboardFromApp(capture);
+}
+APIFUNC_END
+
+APIFUNC(capturemousefromapp)
+{
+    bool capture = POPARG(as_bool, true);
+    ImGui::CaptureMouseFromApp(capture);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2648,4 +2887,25 @@ void cl_define_bindings()
     define("end-child-frame", clapi_endchildframe);
     define("rgb-to-hsv", clapi_rgbtohsv);
     define("hsv-to-rgb", clapi_hsvtorgb);
+    define("get-key-index", clapi_getkeyindex);
+    define("key-down-p", clapi_iskeydown);
+    define("key-pressed-p", clapi_iskeypressed);
+    define("key-released-p", clapi_iskeyreleased);
+    define("get-key-pressed-amount", clapi_getkeypressedamount);
+    define("mouse-down-p", clapi_ismousedown);
+    define("any-mouse-down-p", clapi_isanymousedown);
+    define("mouse-clicked-p", clapi_ismouseclicked);
+    define("mouse-double-clicked-p", clapi_ismousedoubleclicked);
+    define("mouse-released-p", clapi_ismousereleased);
+    define("mouse-dragging-p", clapi_ismousedragging);
+    define("mouse-hovering-rect-p", clapi_ismousehoveringrect);
+    define("mouse-pos-valid-p", clapi_ismouseposvalid);
+    define("get-mouse-pos", clapi_getmousepos);
+    define("get-mouse-pos-on-opening-current-popup", clapi_getmouseposonopeningcurrentpopup);
+    define("get-mouse-drag-delta", clapi_getmousedragdelta);
+    define("reset-mouse-drag-delta", clapi_resetmousedragdelta);
+    define("get-mouse-cursor", clapi_getmousecursor);
+    define("set-mouse-cursor", clapi_setmousecursor);
+    define("capture-keyboard-from-app", clapi_capturekeyboardfromapp);
+    define("capture-mouse-from-app", clapi_capturemousefromapp);
 }
