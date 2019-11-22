@@ -490,7 +490,8 @@
     :reader bw-slider-int-values-list)
    (invisible-button-toggle :initform nil :accessor bw-invisible-button-toggle)
    (progress :initform 0.0 :accessor bw-progress)
-   (single-line :initform (list "") :accessor bw-single-line)))
+   (single-line :initform (list "") :accessor bw-single-line)
+   (bunch-o-lines :initform (list "") :accessor bw-bunch-o-lines)))
 
 (defvar *basic-widgets-model*
   (make-instance 'basic-widgets-model))
@@ -561,7 +562,9 @@
             (setf (bw-progress model) 0.0)))
         (input-text "Your Name" (bw-single-line model))
         (when (plusp (length (car (bw-single-line model))))
-          (text (format nil "Hi there, ~A" (car (bw-single-line model))))))
+          (text (format nil "Hi there, ~A" (car (bw-single-line model)))))
+        (input-text-with-hint "Come Again?" "Computers May Have Trouble Hearing" (bw-single-line model))
+        (input-text-multiline "Life Story" (bw-bunch-o-lines model)))
       (tab-item "Sliders"
         (loop for i upfrom 1
               for v in (bw-slider-float-values-list model)

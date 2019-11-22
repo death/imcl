@@ -2743,6 +2743,68 @@ APIFUNC(inputtext)
 }
 APIFUNC_END
 
+APIFUNC(inputtextmultiline)
+{
+    bool ret = false;
+    const char *label = POPARG(as_text, "label");
+    cl_object stringbox = POPARG(as_object, ECL_NIL);
+    if (cl_consp(stringbox) != ECL_NIL) {
+        cl_object s = cl_car(stringbox);
+        if (cl_stringp(s) != ECL_NIL) {
+            ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+            ImGuiInputTextFlags flags = POPARG(as_imguiinputtextflags, ImGuiInputTextFlags_None);
+            flags |= ImGuiInputTextFlags_CallbackResize;
+            InputTextCallback_UserData userdata;
+            std::string cpp_s = as_text(s);
+            userdata.s = cpp_s;
+            ret = ImGui::InputTextMultiline(label,
+                                            (char *)userdata.s.c_str(),
+                                            userdata.s.capacity() + 1,
+                                            size,
+                                            flags,
+                                            InputTextCallback,
+                                            &userdata);
+            if (userdata.s != cpp_s) {
+                s = ecl_make_simple_base_string(userdata.s.c_str(), -1);
+                cl_rplaca(stringbox, s);
+            }
+        }
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(inputtextwithhint)
+{
+    bool ret = false;
+    const char *label = POPARG(as_text, "label");
+    const char *hint = POPARG(as_text, "hint");
+    cl_object stringbox = POPARG(as_object, ECL_NIL);
+    if (cl_consp(stringbox) != ECL_NIL) {
+        cl_object s = cl_car(stringbox);
+        if (cl_stringp(s) != ECL_NIL) {
+            ImGuiInputTextFlags flags = POPARG(as_imguiinputtextflags, ImGuiInputTextFlags_None);
+            flags |= ImGuiInputTextFlags_CallbackResize;
+            InputTextCallback_UserData userdata;
+            std::string cpp_s = as_text(s);
+            userdata.s = cpp_s;
+            ret = ImGui::InputTextWithHint(label,
+                                           hint,
+                                           (char *)userdata.s.c_str(),
+                                           userdata.s.capacity() + 1,
+                                           flags,
+                                           InputTextCallback,
+                                           &userdata);
+            if (userdata.s != cpp_s) {
+                s = ecl_make_simple_base_string(userdata.s.c_str(), -1);
+                cl_rplaca(stringbox, s);
+            }
+        }
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2956,4 +3018,6 @@ void cl_define_bindings()
     define("capture-keyboard-from-app", clapi_capturekeyboardfromapp);
     define("capture-mouse-from-app", clapi_capturemousefromapp);
     define("input-text", clapi_inputtext);
+    define("input-text-multiline", clapi_inputtextmultiline);
+    define("input-text-with-hint", clapi_inputtextwithhint);
 }
