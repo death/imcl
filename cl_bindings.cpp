@@ -1,5 +1,6 @@
 #include "imgui.h"
 #include <ecl/ecl.h>
+#include <string>
 
 // Support
 
@@ -2696,6 +2697,52 @@ APIFUNC(capturemousefromapp)
 }
 APIFUNC_END
 
+struct InputTextCallback_UserData
+{
+    std::string s;
+};
+
+int InputTextCallback(ImGuiInputTextCallbackData *data)
+{
+    InputTextCallback_UserData *userdata = (InputTextCallback_UserData *)data->UserData;
+
+    if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
+        userdata->s.resize(data->BufTextLen);
+        data->Buf = (char *)userdata->s.c_str();
+    }
+
+    return 0;
+}
+
+APIFUNC(inputtext)
+{
+    bool ret = false;
+    const char *label = POPARG(as_text, "label");
+    cl_object stringbox = POPARG(as_object, ECL_NIL);
+    if (cl_consp(stringbox) != ECL_NIL) {
+        cl_object s = cl_car(stringbox);
+        if (cl_stringp(s) != ECL_NIL) {
+            ImGuiInputTextFlags flags = POPARG(as_imguiinputtextflags, ImGuiInputTextFlags_None);
+            flags |= ImGuiInputTextFlags_CallbackResize;
+            InputTextCallback_UserData userdata;
+            std::string cpp_s = as_text(s);
+            userdata.s = cpp_s;
+            ret = ImGui::InputText(label,
+                                   (char *)userdata.s.c_str(),
+                                   userdata.s.capacity() + 1,
+                                   flags,
+                                   InputTextCallback,
+                                   &userdata);
+            if (userdata.s != cpp_s) {
+                s = ecl_make_simple_base_string(userdata.s.c_str(), -1);
+                cl_rplaca(stringbox, s);
+            }
+        }
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -2908,4 +2955,5 @@ void cl_define_bindings()
     define("set-mouse-cursor", clapi_setmousecursor);
     define("capture-keyboard-from-app", clapi_capturekeyboardfromapp);
     define("capture-mouse-from-app", clapi_capturemousefromapp);
+    define("input-text", clapi_inputtext);
 }
