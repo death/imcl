@@ -2805,6 +2805,51 @@ APIFUNC(inputtextwithhint)
 }
 APIFUNC_END
 
+APIFUNC(dragfloatrange)
+{
+    bool ret = false;
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    if (cl_consp(val) != ECL_NIL && ecl_length(val) == 2) {
+        float v_speed = POPARG(as_float, 1.0F);
+        float v_min = POPARG(as_float, 0.0F);
+        float v_max = POPARG(as_float, 0.0F);
+        const char *format = POPARG(as_text, "%.3f");
+        const char *format_max = POPARG(as_text, NULL);
+        float power = POPARG(as_float, 1.0F);
+        float v[2];
+        v[0] = as_float(cl_first(val));
+        v[1] = as_float(cl_second(val));
+        ret = ImGui::DragFloatRange2(label, &v[0], &v[1], v_speed, v_min, v_max, format, format_max, power);
+        cl_rplaca(val, ecl_make_single_float(v[0]));
+        cl_rplaca(cl_cdr(val), ecl_make_single_float(v[1]));
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(dragintrange)
+{
+    bool ret = false;
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    if (cl_consp(val) != ECL_NIL && ecl_length(val) == 2) {
+        float v_speed = POPARG(as_float, 1.0F);
+        int v_min = POPARG(as_int, 0);
+        int v_max = POPARG(as_int, 0);
+        const char *format = POPARG(as_text, "%d");
+        const char *format_max = POPARG(as_text, NULL);
+        int v[2];
+        v[0] = as_int(cl_first(val));
+        v[1] = as_int(cl_second(val));
+        ret = ImGui::DragIntRange2(label, &v[0], &v[1], v_speed, v_min, v_max, format, format_max);
+        cl_rplaca(val, ecl_make_int32_t(v[0]));
+        cl_rplaca(cl_cdr(val), ecl_make_int32_t(v[1]));
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -3020,4 +3065,6 @@ void cl_define_bindings()
     define("input-text", clapi_inputtext);
     define("input-text-multiline", clapi_inputtextmultiline);
     define("input-text-with-hint", clapi_inputtextwithhint);
+    define("drag-float-range", clapi_dragfloatrange);
+    define("drag-int-range", clapi_dragintrange);
 }

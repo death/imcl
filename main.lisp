@@ -491,7 +491,9 @@
    (invisible-button-toggle :initform nil :accessor bw-invisible-button-toggle)
    (progress :initform 0.0 :accessor bw-progress)
    (single-line :initform (list "") :accessor bw-single-line)
-   (bunch-o-lines :initform (list "") :accessor bw-bunch-o-lines)))
+   (bunch-o-lines :initform (list "") :accessor bw-bunch-o-lines)
+   (float-range :initform (list 1.0 5.0) :accessor bw-float-range)
+   (int-range :initform (list 1 5) :accessor bw-int-range)))
 
 (defvar *basic-widgets-model*
   (make-instance 'basic-widgets-model))
@@ -552,7 +554,9 @@
           (arrow-button (format nil "arrow-~A" dir) dir)
           (same-line))
         (bullet)
-        (new-line))
+        (new-line)
+        (drag-float-range "Float Range" (bw-float-range model))
+        (drag-int-range "Int Range" (bw-int-range model)))
       (tab-item "Item 2"
         (text "Content for second tab item")
         (progress-bar (bw-progress model))
