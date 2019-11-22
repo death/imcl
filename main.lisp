@@ -404,25 +404,30 @@
   name
   unit
   query-function
-  window
-  counter
-  running-total)
+  (window nil :type (simple-array single-float))
+  (counter 0 :type (unsigned-byte 16))
+  (running-total 0.0f0 :type single-float))
 
 (defun metric-update (metric)
-  (let ((new-value (funcall (metric-query-function metric))))
-    (symbol-macrolet ((current-value (aref (metric-window metric)
-                                           (metric-counter metric))))
-      (decf (metric-running-total metric) current-value)
-      (incf (metric-running-total metric) new-value)
-      (setf current-value new-value)
-      (setf (metric-counter metric)
-            (mod (1+ (metric-counter metric))
-                 (metric-window-size metric))))))
+  (declare (optimize (speed 3)))
+  (declare (type metric metric))
+  (let ((new-value (coerce (funcall (metric-query-function metric)) 'single-float))
+        (window (metric-window metric))
+        (counter (metric-counter metric)))
+    (declare (type single-float new-value))
+    (declare (type (simple-array single-float) window))
+    (declare (type (unsigned-byte 16) counter))
+    (decf (metric-running-total metric) (aref window counter))
+    (incf (metric-running-total metric) new-value)
+    (setf (aref window counter) new-value)
+    (setf (metric-counter metric)
+          (mod (1+ counter) (metric-window-size metric)))))
 
 (defun metric-mean (metric)
-  (float
+  (coerce
    (/ (metric-running-total metric)
-      (metric-window-size metric))))
+      (metric-window-size metric))
+   'single-float))
 
 (defun metric-window-size (metric)
   (length (metric-window metric)))
@@ -430,13 +435,13 @@
 (defvar *metrics* '())
 
 (defun add-metric (&key name unit query-function window-size initial-value)
-  (setf initial-value (or initial-value 0))
+  (setf initial-value (coerce (or initial-value 0.0) 'single-float))
   (push (make-metric :name name
                      :unit unit
                      :query-function query-function
                      :window (make-array window-size
                                          :initial-element initial-value
-                                         :element-type '(unsigned-byte 32))
+                                         :element-type 'single-float)
                      :counter 0
                      :running-total (* initial-value window-size))
         *metrics*))
@@ -448,15 +453,16 @@
 (defun window-metrics ()
   (metrics-update)
   (window "Metrics"
-    (columns 2)
     (dolist (metric *metrics*)
-      (text (format nil "~:(~A~) (~(~A~))"
-                    (metric-name metric)
-                    (metric-unit metric)))
-      (next-column)
-      (text (format nil "~,1F"
-                    (metric-mean metric)))
-      (next-column))))
+      (plot-lines (format nil "~:(~A~) (~(~A~))"
+                          (metric-name metric)
+                          (metric-unit metric))
+                  (metric-window metric)
+                  (metric-counter metric)
+                  (format nil "~,1F" (metric-mean metric))
+                  0.0
+                  1800.0
+                  '(400 80)))))
 
 (defun app-metrics ()
   (when (null *metrics*)
