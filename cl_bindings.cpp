@@ -2871,6 +2871,28 @@ APIFUNC(plotlines)
 }
 APIFUNC_END
 
+
+APIFUNC(plothistogram)
+{
+    const char *label = POPARG(as_text, "label");
+    cl_object val = POPARG(as_object, ECL_NIL);
+    if (ECL_ARRAYP(val) && val->array.elttype == ecl_aet_sf) {
+        int nvalues = ecl_length(val);
+        int offset = POPARG(as_int, 0);
+        if (offset > nvalues) {
+            offset = nvalues;
+        }
+        const float *values = (const float *)ecl_row_major_ptr(val, 0, 0);
+        const char *overlay_text = POPARG(as_text, NULL);
+        float scale_min = POPARG(as_float, FLT_MAX);
+        float scale_max = POPARG(as_float, FLT_MAX);
+        ImVec2 graph_size = POPARG(as_imvec2, ImVec2(0, 0));
+        int stride = sizeof(float);
+        ImGui::PlotHistogram(label, values, nvalues, offset, overlay_text, scale_min, scale_max, graph_size, stride);
+    }
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -3089,4 +3111,5 @@ void cl_define_bindings()
     define("drag-float-range", clapi_dragfloatrange);
     define("drag-int-range", clapi_dragintrange);
     define("plot-lines", clapi_plotlines);
+    define("plot-histogram", clapi_plothistogram);
 }

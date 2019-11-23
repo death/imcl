@@ -499,7 +499,8 @@
    (single-line :initform (list "") :accessor bw-single-line)
    (bunch-o-lines :initform (list "") :accessor bw-bunch-o-lines)
    (float-range :initform (list 1.0 5.0) :accessor bw-float-range)
-   (int-range :initform (list 1 5) :accessor bw-int-range)))
+   (int-range :initform (list 1 5) :accessor bw-int-range)
+   (symbol-histogram :initform nil :accessor bw-symbol-histogram)))
 
 (defvar *basic-widgets-model*
   (make-instance 'basic-widgets-model))
@@ -562,7 +563,29 @@
         (bullet)
         (new-line)
         (drag-float-range "Float Range" (bw-float-range model))
-        (drag-int-range "Int Range" (bw-int-range model)))
+        (drag-int-range "Int Range" (bw-int-range model))
+        (when (null (bw-symbol-histogram model))
+          (let ((histogram (make-array 5 :initial-element 0.0 :element-type 'single-float)))
+            (do-external-symbols (symbol "CL")
+              (let* ((is-bound (boundp symbol))
+                     (is-fbound (and (not is-bound) (fboundp symbol)))
+                     (is-specop (and is-fbound (special-operator-p symbol)))
+                     (is-mac (and is-fbound (not is-specop) (macro-function symbol)))
+                     (is-func (and is-fbound (not is-specop) (not is-mac)))
+                     (index (cond (is-specop 4)
+                                  (is-mac 3)
+                                  (is-func 2)
+                                  (is-bound 1)
+                                  (t 0))))
+                (incf (aref histogram index))))
+            (setf (bw-symbol-histogram model) histogram)))
+        (plot-histogram "Symbol partitioning"
+                        (bw-symbol-histogram model)
+                        0
+                        "S M F V U"
+                        0.0
+                        1000.0
+                        '(150 80)))
       (tab-item "Item 2"
         (text "Content for second tab item")
         (progress-bar (bw-progress model))
