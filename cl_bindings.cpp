@@ -2854,7 +2854,7 @@ APIFUNC(plotlines)
 {
     const char *label = POPARG(as_text, "label");
     cl_object val = POPARG(as_object, ECL_NIL);
-    if (ECL_ARRAYP(val) && val->array.elttype == ecl_aet_sf) {
+    if (ECL_ARRAYP(val) && ecl_array_elttype(val) == ecl_aet_sf) {
         int nvalues = ecl_length(val);
         int offset = POPARG(as_int, 0);
         if (offset > nvalues) {
