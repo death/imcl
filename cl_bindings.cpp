@@ -120,9 +120,9 @@ int keyword_flags_value(cl_object flags, struct keyword_enum_descriptor *descrip
 {
     if (ecl_keywordp(flags)) {
         return keyword_enum_value(flags, descriptors, size);
-    } else if (cl_consp(flags) != ECL_NIL) {
+    } else if (CONSP(flags)) {
         int value = 0;
-        while (cl_consp(flags) != ECL_NIL) {
+        while (CONSP(flags)) {
             cl_object item = cl_car(flags);
             value |= keyword_enum_value(item, descriptors, size);
             flags = cl_cdr(flags);
@@ -138,7 +138,7 @@ int keyword_flags_value(cl_object flags, struct keyword_enum_descriptor *descrip
 
 bool ecl_imvec2_p(cl_object object, ImVec2 & result)
 {
-    if (cl_consp(object) == ECL_NIL) {
+    if (!CONSP(object)) {
         return false;
     }
     cl_object car = cl_car(object);
@@ -146,7 +146,7 @@ bool ecl_imvec2_p(cl_object object, ImVec2 & result)
         return false;
     }
     cl_object cdr = cl_cdr(object);
-    if (cl_consp(object) == ECL_NIL) {
+    if (!CONSP(object)) {
         return false;
     }
     cl_object cadr = cl_car(cdr);
@@ -190,7 +190,7 @@ bool ecl_imvec4_p(cl_object object, ImVec4 & result)
         result = uint_to_imvec4(val);
         return true;
     }
-    if (cl_consp(object) == ECL_NIL) {
+    if (!CONSP(object)) {
         return false;
     }
     cl_object car = cl_car(object);
@@ -198,7 +198,7 @@ bool ecl_imvec4_p(cl_object object, ImVec4 & result)
         return false;
     }
     cl_object cdr = cl_cdr(object);
-    if (cl_consp(object) == ECL_NIL) {
+    if (!CONSP(cdr)) {
         return false;
     }
     cl_object cadr = cl_car(cdr);
@@ -206,7 +206,7 @@ bool ecl_imvec4_p(cl_object object, ImVec4 & result)
         return false;
     }
     cl_object cddr = cl_cdr(cdr);
-    if (cl_consp(cddr) == ECL_NIL) {
+    if (!CONSP(cddr)) {
         return false;
     }
     cl_object caddr = cl_car(cddr);
@@ -214,7 +214,7 @@ bool ecl_imvec4_p(cl_object object, ImVec4 & result)
         return false;
     }
     cl_object cdddr = cl_cdr(cddr);
-    if (cl_consp(cdddr) == ECL_NIL) {
+    if (!CONSP(cdddr)) {
         return false;
     }
     cl_object cadddr = cl_car(cdddr);
@@ -1268,7 +1268,7 @@ APIFUNC(sliderfloat)
     float v[4];
     int n = 0;
     cl_object sub = val;
-    while (cl_consp(sub) != ECL_NIL && n < 4) {
+    while (CONSP(sub) && n < 4) {
         cl_object car = cl_car(sub);
         if (!ecl_realp(car)) {
             n = 0;
@@ -1314,7 +1314,7 @@ APIFUNC(sliderangle)
     float v_degrees_max = POPARG(as_float, +360.0F);
     const char *format = POPARG(as_text, "%.0f deg");
     bool ret = false;
-    if (cl_consp(val) != ECL_NIL) {
+    if (CONSP(val)) {
         cl_object car = cl_car(val);
         if (ecl_realp(car)) {
             float v_rad = as_float(car);
@@ -1337,7 +1337,7 @@ APIFUNC(sliderint)
     int v[4];
     int n = 0;
     cl_object sub = val;
-    while (cl_consp(sub) != ECL_NIL && n < 4) {
+    while (CONSP(sub) && n < 4) {
         cl_object car = cl_car(sub);
         if (!ecl_realp(car)) {
             n = 0;
@@ -1385,7 +1385,7 @@ APIFUNC(vsliderfloat)
     const char *format = POPARG(as_text, "%.3f");
     float power = POPARG(as_float, 1.0F);
     bool ret = false;
-    if (cl_consp(val) != ECL_NIL) {
+    if (CONSP(val)) {
         cl_object car = cl_car(val);
         if (ecl_realp(car)) {
             float f = as_float(car);
@@ -1406,7 +1406,7 @@ APIFUNC(vsliderint)
     int v_max = POPARG(as_int, 100);
     const char *format = POPARG(as_text, "%d");
     bool ret = false;
-    if (cl_consp(val) != ECL_NIL) {
+    if (CONSP(val)) {
         cl_object car = cl_car(val);
         if (ecl_realp(car)) {
             int v = as_int(car);
@@ -1873,7 +1873,7 @@ APIFUNC(dragfloat)
     float v[4];
     int n = 0;
     cl_object sub = val;
-    while (cl_consp(sub) != ECL_NIL && n < 4) {
+    while (CONSP(sub) && n < 4) {
         cl_object car = cl_car(sub);
         if (!ecl_realp(car)) {
             n = 0;
@@ -1923,7 +1923,7 @@ APIFUNC(inputfloat)
     float v[4];
     int n = 0;
     cl_object sub = val;
-    while (cl_consp(sub) != ECL_NIL && n < 4) {
+    while (CONSP(sub) && n < 4) {
         cl_object car = cl_car(sub);
         if (!ecl_realp(car)) {
             n = 0;
@@ -1973,7 +1973,7 @@ APIFUNC(dragint)
     int v[4];
     int n = 0;
     cl_object sub = val;
-    while (cl_consp(sub) != ECL_NIL && n < 4) {
+    while (CONSP(sub) && n < 4) {
         cl_object car = cl_car(sub);
         if (!ecl_realp(car)) {
             n = 0;
@@ -2022,7 +2022,7 @@ APIFUNC(inputint)
     int v[4];
     int n = 0;
     cl_object sub = val;
-    while (cl_consp(sub) != ECL_NIL && n < 4) {
+    while (CONSP(sub) && n < 4) {
         cl_object car = cl_car(sub);
         if (!ecl_realp(car)) {
             n = 0;
@@ -2194,7 +2194,7 @@ APIFUNC(coloredit)
     float v[4];
     int n = 0;
     cl_object sub = val;
-    while (cl_consp(sub) != ECL_NIL && n < 4) {
+    while (CONSP(sub) && n < 4) {
         cl_object car = cl_car(sub);
         if (!ecl_realp(car)) {
             n = 0;
@@ -2233,7 +2233,7 @@ APIFUNC(colorpicker)
     float v[4];
     int n = 0;
     cl_object sub = val;
-    while (cl_consp(sub) != ECL_NIL && n < 4) {
+    while (CONSP(sub) && n < 4) {
         cl_object car = cl_car(sub);
         if (!ecl_realp(car)) {
             n = 0;
@@ -2719,7 +2719,7 @@ APIFUNC(inputtext)
     bool ret = false;
     const char *label = POPARG(as_text, "label");
     cl_object stringbox = POPARG(as_object, ECL_NIL);
-    if (cl_consp(stringbox) != ECL_NIL) {
+    if (CONSP(stringbox)) {
         cl_object s = cl_car(stringbox);
         if (cl_stringp(s) != ECL_NIL) {
             ImGuiInputTextFlags flags = POPARG(as_imguiinputtextflags, ImGuiInputTextFlags_None);
@@ -2748,7 +2748,7 @@ APIFUNC(inputtextmultiline)
     bool ret = false;
     const char *label = POPARG(as_text, "label");
     cl_object stringbox = POPARG(as_object, ECL_NIL);
-    if (cl_consp(stringbox) != ECL_NIL) {
+    if (CONSP(stringbox)) {
         cl_object s = cl_car(stringbox);
         if (cl_stringp(s) != ECL_NIL) {
             ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
@@ -2780,7 +2780,7 @@ APIFUNC(inputtextwithhint)
     const char *label = POPARG(as_text, "label");
     const char *hint = POPARG(as_text, "hint");
     cl_object stringbox = POPARG(as_object, ECL_NIL);
-    if (cl_consp(stringbox) != ECL_NIL) {
+    if (CONSP(stringbox)) {
         cl_object s = cl_car(stringbox);
         if (cl_stringp(s) != ECL_NIL) {
             ImGuiInputTextFlags flags = POPARG(as_imguiinputtextflags, ImGuiInputTextFlags_None);
@@ -2810,7 +2810,7 @@ APIFUNC(dragfloatrange)
     bool ret = false;
     const char *label = POPARG(as_text, "label");
     cl_object val = POPARG(as_object, ECL_NIL);
-    if (cl_consp(val) != ECL_NIL && ecl_length(val) == 2) {
+    if (CONSP(val) && ecl_length(val) == 2) {
         float v_speed = POPARG(as_float, 1.0F);
         float v_min = POPARG(as_float, 0.0F);
         float v_max = POPARG(as_float, 0.0F);
@@ -2833,7 +2833,7 @@ APIFUNC(dragintrange)
     bool ret = false;
     const char *label = POPARG(as_text, "label");
     cl_object val = POPARG(as_object, ECL_NIL);
-    if (cl_consp(val) != ECL_NIL && ecl_length(val) == 2) {
+    if (CONSP(val) && ecl_length(val) == 2) {
         float v_speed = POPARG(as_float, 1.0F);
         int v_min = POPARG(as_int, 0);
         int v_max = POPARG(as_int, 0);
