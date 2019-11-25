@@ -611,6 +611,26 @@ ImGuiMouseCursor as_imguimousecursor(cl_object obj)
     return cursor;
 }
 
+struct keyword_enum_descriptor imguicomboflags[] = {
+    {"NONE", ImGuiComboFlags_None},
+    {"POPUP-ALIGN-LEFT", ImGuiComboFlags_PopupAlignLeft},
+    {"HEIGHT-SMALL", ImGuiComboFlags_HeightSmall},
+    {"HEIGHT-REGULAR", ImGuiComboFlags_HeightRegular},
+    {"HEIGHT-LARGE", ImGuiComboFlags_HeightLarge},
+    {"HEIGHT-LARGEST", ImGuiComboFlags_HeightLargest},
+    {"NO-ARROW-BUTTON", ImGuiComboFlags_NoArrowButton},
+    {"NO-PREVIEW", ImGuiComboFlags_NoPreview},
+};
+
+ImGuiTabBarFlags as_imguicomboflags(cl_object obj)
+{
+    ImGuiComboFlags flags = ImGuiComboFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguicomboflags, LENGTHOF(imguicomboflags));
+    }
+    return flags;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -1117,8 +1137,7 @@ APIFUNC(begincombo)
 {
     const char *label = POPARG(as_text, "label");
     const char *preview_value = POPARG(as_text, "preview");
-    // TODO: flags
-    ImGuiComboFlags flags = 0;
+    ImGuiComboFlags flags = POPARG(as_imguicomboflags, ImGuiComboFlags_None);
     bool ret = ImGui::BeginCombo(label, preview_value, flags);
     RETBOOL(ret);
 }
