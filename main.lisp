@@ -31,7 +31,7 @@
   (ql:quickload "cl-opengl")
   (ql:quickload "cl-glfw3")
   (set (find-symbol "*WINDOW*" "GLFW") *glfw-window*)
-  t)
+  (load "main-gl"))
 
 ;; Colors
 
@@ -462,15 +462,20 @@
                   (format nil "~,1F" (metric-mean metric))
                   0.0
                   1800.0
-                  '(400 80)))))
+                  '(350 80)))))
 
 (defun app-metrics ()
   (when (null *metrics*)
-    (add-metric :name 'time-in-lisp
+    (add-metric :name 'time-in-im-tick
                 :unit 'us
-                :query-function (lambda () *time-in-lisp*)
+                :query-function (lambda () *time-in-im-tick*)
                 :window-size 1000
-                :initial-value *time-in-lisp*))
+                :initial-value *time-in-im-tick*)
+    (add-metric :name 'time-in-gl-tick
+                :unit 'us
+                :query-function (lambda () *time-in-gl-tick*)
+                :window-size 1000
+                :initial-value *time-in-gl-tick*))
   (window-metrics))
 
 (defun metrics-restart ()
@@ -948,97 +953,13 @@
 
 (defun init ()
   "INIT runs right after this file is loaded."
+  ;; (setup-gl-environment)
   (app-add 'show-demo-window))
-
-(setup-gl-environment)
 
 (defun im-tick ()
   "IM-TICK runs on each iteration of the UI loop."
   (app-tick))
 
-(defclass gl-stuff ()
-  ((vao :initform nil :accessor vao)
-   (vbo :initform nil :accessor vbo)
-   (program :initform nil :accessor program)))
-
-(defvar *gl-stuff* nil)
-
-(defvar *vertex-shader*
-  '("#version 310 es
-     layout(location = 0) in vec3 vertexPosition_modelspace;
-     void main() {
-       gl_Position.xyz = vertexPosition_modelspace;
-       gl_Position.w = 1.0;
-     }"))
-
-(defun create-vertex-shader ()
-  (let ((id (gl:create-shader :vertex-shader)))
-    (gl:shader-source id *vertex-shader*)
-    (gl:compile-shader id)
-    (let ((result (gl:get-shader id :compile-status))
-          (info-log-len (gl:get-shader id :info-log-length)))
-      (when (plusp info-log-len)
-        (format t "VERTEX SHADER: ~A~%" (gl:get-shader-info-log id))))
-    id))
-
-(defvar *fragment-shader*
-  '("#version 310 es
-     precision mediump float;
-     out vec3 color;
-     void main() {
-       color = vec3(1, 0, 0);
-     }"))
-
-(defun create-fragment-shader ()
-  (let ((id (gl:create-shader :fragment-shader)))
-    (gl:shader-source id *fragment-shader*)
-    (gl:compile-shader id)
-    (let ((result (gl:get-shader id :compile-status))
-          (info-log-len (gl:get-shader id :info-log-length)))
-      (when (plusp info-log-len)
-        (format t "FRAGMENT SHADER: ~A~%" (gl:get-shader-info-log id))))
-    id))
-
-(defun create-program ()
-  (let ((v-id (create-vertex-shader))
-        (f-id (create-fragment-shader))
-        (p-id (gl:create-program)))
-    (gl:attach-shader p-id v-id)
-    (gl:attach-shader p-id f-id)
-    (gl:link-program p-id)
-    (let ((result (gl:get-program p-id :link-status))
-          (info-log-len (gl:get-program p-id :info-log-length)))
-      (when (plusp info-log-len)
-        (format t "PROGRAM: ~A~%" (gl:get-program-info-log p-id))))
-    (gl:detach-shader p-id v-id)
-    (gl:detach-shader p-id f-id)
-    (gl:delete-shader v-id)
-    (gl:delete-shader f-id)
-    p-id))
-
 (defun gl-tick ()
   "GL-TICK runs on each iteration of the UI loop, before imgui
-rendering."
-  (when (null *gl-stuff*)
-    ;; Initialize VAO and VBO.
-    (setf *gl-stuff* (make-instance 'gl-stuff))
-    (setf (vao *gl-stuff*) (first (gl:gen-vertex-arrays 1)))
-    (gl:bind-vertex-array (vao *gl-stuff*))
-    (setf (vbo *gl-stuff*) (first (gl:gen-buffers 1)))
-    (gl:bind-buffer :array-buffer (vbo *gl-stuff*))
-    (gl:with-gl-array (arr :float :count 9)
-      (let ((verts #(-1.0 -1.0 0.0 1.0 -1.0 0.0 0.0 1.0 0.0)))
-        (dotimes (i (length verts))
-          (setf (gl:glaref arr i) (aref verts i))))
-      (gl:buffer-data :array-buffer :static-draw arr))
-    (setf (program *gl-stuff*) (create-program)))
-  ;; Clear buffer.
-  (gl:clear-color 0.45 0.55 0.6 1.0)
-  (gl:clear :color-buffer-bit)
-  ;; Draw VBO.
-  (gl:use-program (program *gl-stuff*))
-  (gl:enable-vertex-attrib-array 0)
-  (gl:bind-buffer :array-buffer (vbo *gl-stuff*))
-  (gl:vertex-attrib-pointer 0 3 :float nil 0 (cffi:null-pointer))
-  (gl:draw-arrays :triangles 0 3)
-  (gl:disable-vertex-attrib-array 0))
+rendering.")

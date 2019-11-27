@@ -143,14 +143,19 @@ int main(int argc, char **argv)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != NULL);
 
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
     cl_define_bindings();
 
     cl_object window_cl = ecl_make_pointer(window);
     ecl_shadow(ecl_read_from_cstring("*glfw-window*"), ecl_current_package());
     cl_set(ecl_read_from_cstring("*glfw-window*"), window_cl);
 
-    cl_object time_in_lisp_var = ecl_read_from_cstring("*time-in-lisp*");
-    cl_set(time_in_lisp_var, ecl_make_int32_t(0));
+    cl_object time_in_imtick_var = ecl_read_from_cstring("*time-in-im-tick*");
+    cl_set(time_in_imtick_var, ecl_make_int32_t(0));
+
+    cl_object time_in_gltick_var = ecl_read_from_cstring("*time-in-gl-tick*");
+    cl_set(time_in_gltick_var, ecl_make_int32_t(0));
 
     cl_eval(c_string_to_object("(load \"main\")"));
     cl_eval(c_string_to_object("(init)"));
@@ -200,7 +205,7 @@ int main(int argc, char **argv)
             double lisp_end_time = glfwGetTime();
             double lisp_duration = lisp_end_time - lisp_start_time;
             int time_in_lisp = (int)(lisp_duration * 1000000.0);
-            cl_set(time_in_lisp_var, ecl_make_int32_t(time_in_lisp));
+            cl_set(time_in_imtick_var, ecl_make_int32_t(time_in_lisp));
         }
 
         if (g_error_state.show_error) {
@@ -221,6 +226,10 @@ int main(int argc, char **argv)
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
 
+        // Only needed if we don't do it on the Lisp side...
+        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         if (!g_error_state.show_error) {
             double lisp_start_time = glfwGetTime();
             cl_env_ptr env = ecl_process_env();
@@ -236,7 +245,7 @@ int main(int argc, char **argv)
             double lisp_end_time = glfwGetTime();
             double lisp_duration = lisp_end_time - lisp_start_time;
             int time_in_lisp = (int)(lisp_duration * 1000000.0);
-            //cl_set(time_in_lisp_var, ecl_make_int32_t(time_in_lisp));
+            cl_set(time_in_gltick_var, ecl_make_int32_t(time_in_lisp));
         }
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
