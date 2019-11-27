@@ -39,16 +39,15 @@
   '("#version 310 es
      layout(location = 0) in vec3 aPos;
      void main() {
-       gl_Position.xyz = aPos;
-       gl_Position.w = 1.0;
+       gl_Position = vec4(aPos, 1.0);
      }"))
 
 (defvar *initial-fragment-shader*
   '("#version 310 es
      precision mediump float;
-     out vec3 color;
+     out vec4 FragColor;
      void main() {
-       color = vec3(1, 0, 0);
+       FragColor = vec4(0.1, 0.2, 0.3, 1.0);
      }"))
 
 (defclass gl-stuff ()
@@ -77,8 +76,6 @@
   ;; Draw
   (gl:use-program (program *gl-stuff*))
   (gl:bind-vertex-array (vao *gl-stuff*))
-  ;; (gl:draw-arrays :triangles 0 3)
-  (gl:polygon-mode :front-and-back :fill)
   (%gl:draw-elements :triangles 6 :unsigned-int 0)
   (gl:bind-vertex-array 0))
 
@@ -123,17 +120,9 @@
     (gl:enable-vertex-attrib-array 0)
     (gl:vertex-attrib-pointer 0 3 :float nil 0 (cffi:null-pointer))))
 
-(defun gl-stuff-recreate-program ()
+(defun recreate-program ()
   (gl:delete-program (program *gl-stuff*))
   (setf (program *gl-stuff*) nil))
-
-(defmethod (setf vertex-shader-strings) :after (new-shader (object gl-stuff))
-  (declare (ignore new-shader))
-  (gl-stuff-recreate-program))
-
-(defmethod (setf fragment-shader-strings) :after (new-shader (object gl-stuff))
-  (declare (ignore new-shader))
-  (gl-stuff-recreate-program))
 
 (defun gl-tick ()
   "GL-TICK runs on each iteration of the UI loop, before imgui
