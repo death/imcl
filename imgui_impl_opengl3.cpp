@@ -101,6 +101,8 @@
 #endif
 #endif
 
+#include "stb_image.h"
+
 // OpenGL Data
 static char         g_GlslVersionString[32] = "";
 static GLuint       g_FontTexture = 0;
@@ -596,4 +598,56 @@ void    ImGui_ImplOpenGL3_DestroyDeviceObjects()
     g_ShaderHandle = 0;
 
     ImGui_ImplOpenGL3_DestroyFontsTexture();
+}
+
+unsigned int LoadTexture(const char *filename, int *width, int *height, int *nchannels)
+{
+    int w;
+    int h;
+    int c;
+    unsigned char *data;
+    unsigned int texture;
+    int format;
+
+    data = stbi_load(filename, &w, &h, &c, 0);
+    if (!data) {
+        return 0;
+    }
+
+    switch (c) {
+    case 1:
+        format = GL_RED;
+        break;
+    case 2:
+        // FIXME: Not really red/green, but red/alpha
+        format = GL_RG;
+        break;
+    case 3:
+        format = GL_RGB;
+        break;
+    case 4:
+        format = GL_RGBA;
+        break;
+    }
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, data);
+
+    stbi_image_free(data);
+
+    if (width) {
+        *width = w;
+    }
+    if (height) {
+        *height = h;
+    }
+    if (nchannels) {
+        *nchannels = c;
+    }
+
+    return texture;
 }

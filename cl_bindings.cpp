@@ -1,4 +1,5 @@
 #include "imgui.h"
+#include "imgui_impl_opengl3.h"
 #include <ecl/ecl.h>
 #include <string>
 
@@ -2912,6 +2913,64 @@ APIFUNC(plothistogram)
 }
 APIFUNC_END
 
+APIFUNC(image)
+{
+    unsigned int texture_id = POPARG(as_uint, 0U);
+    if (texture_id) {
+        ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+        ImVec2 uv0 = POPARG(as_imvec2, ImVec2(0, 0));
+        ImVec2 uv1 = POPARG(as_imvec2, ImVec2(1, 1));
+        ImVec4 tint_col = POPARG(as_imvec4, ImVec4(1, 1, 1, 1));
+        ImVec4 border_col = POPARG(as_imvec4, ImVec4(0, 0, 0, 0));
+        ImGui::Image((void*)(intptr_t)texture_id, size, uv0, uv1, tint_col, border_col);
+    }
+}
+APIFUNC_END
+
+APIFUNC(imagebutton)
+{
+    bool ret = false;
+    unsigned int texture_id = POPARG(as_uint, 0U);
+    if (texture_id) {
+        ImVec2 size = POPARG(as_imvec2, ImVec2(0, 0));
+        ImVec2 uv0 = POPARG(as_imvec2, ImVec2(0, 0));
+        ImVec2 uv1 = POPARG(as_imvec2, ImVec2(1, 1));
+        int frame_padding = POPARG(as_int, -1);
+        ImVec4 bg_col = POPARG(as_imvec4, ImVec4(0, 0, 0, 0));
+        ImVec4 tint_col = POPARG(as_imvec4, ImVec4(1, 1, 1, 1));
+        ret = ImGui::ImageButton((void*)(intptr_t)texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(loadtexture)
+{
+    const char *filename = POPARG(as_text, NULL);
+    if (filename) {
+        int width;
+        int height;
+        int nchannels;
+        unsigned int texture = LoadTexture(filename, &width, &height, &nchannels);
+        if (texture > 0) {
+            // FIXME: hack to return 4 values without defining APIFUNC4
+            cl_object result1 = ecl_make_uint32_t(texture);
+            cl_object result2 = ecl_make_int32_t(width);
+            cl_object result3 = ecl_make_int32_t(height);
+            cl_object result4 = ecl_make_int32_t(nchannels);
+            ecl_va_end(ap);
+            // ... and there's no ecl_return4 ...
+            cl_env_ptr env = ecl_process_env();
+            ecl_nvalues(env) = 4;
+            ecl_nth_value(env, 1) = result2;
+            ecl_nth_value(env, 2) = result3;
+            ecl_nth_value(env, 3) = result4;
+            return result1;
+        }
+    }
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -3131,4 +3190,9 @@ void cl_define_bindings()
     define("drag-int-range", clapi_dragintrange);
     define("plot-lines", clapi_plotlines);
     define("plot-histogram", clapi_plothistogram);
+    define("image", clapi_image);
+    define("image-button", clapi_imagebutton);
+
+    // Convenience functions not part of imgui
+    define("load-texture", clapi_loadtexture);
 }
