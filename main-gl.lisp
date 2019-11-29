@@ -35,13 +35,26 @@
     (gl:delete-shader f-id)
     p-id))
 
+(defconstant deg-to-rad-factor
+  (coerce (/ pi 180) 'single-float))
+
+(defconstant rad-to-deg-factor
+  (coerce (/ 180 pi) 'single-float))
+
+(defun rad (x)
+  (* x deg-to-rad-factor))
+
+(defun deg (x)
+  (* x rad-to-deg-factor))
+
 (defvar *initial-vertex-shader*
   '("#version 310 es
      layout(location = 0) in vec3 aPos;
      layout(location = 1) in vec2 aTexCoord;
      out vec2 TexCoord;
+     uniform mat4 transform;
      void main() {
-       gl_Position = vec4(aPos, 1.0);
+       gl_Position = transform * vec4(aPos, 1.0);
        TexCoord = aTexCoord;
      }"))
 
@@ -75,7 +88,11 @@
   (when (null (program *gl-stuff*))
     (setf (program *gl-stuff*)
           (create-program (vertex-shader-strings *gl-stuff*)
-                          (fragment-shader-strings *gl-stuff*))))
+                          (fragment-shader-strings *gl-stuff*)))
+    (gl:use-program (program *gl-stuff*))
+    (let ((loc (gl:get-uniform-location (program *gl-stuff*) "transform"))
+          (mat (3d-matrices:marr (3d-matrices:meye 4))))
+      (gl:uniform-matrix loc 4 (vector mat))))
   ;; Clear buffer.
   (apply #'gl:clear-color (bg-color *gl-stuff*))
   (gl:clear :color-buffer-bit)
@@ -128,4 +145,36 @@
 (defun gl-tick ()
   "GL-TICK runs on each iteration of the UI loop, before imgui
 rendering."
-  (gl-stuff-tick))
+  (with-simple-restart (skip "Skip this tick")
+    (gl-stuff-tick)))
+
+(defclass transform-model ()
+  ((translate :initform (list 0.0 0.0) :accessor tr-translate)
+   (scale :initform (list 1.0) :accessor tr-scale)
+   (rotate :initform (list 0.0) :accessor tr-rotate)))
+
+(defvar *transform-model*
+  (make-instance 'transform-model))
+
+(defun show-transform (&optional (model *transform-model*))
+  (window "Transform"
+    (let ((update-matrix nil))
+      (when (drag-float "Translate" (tr-translate model) 0.01)
+        (setf update-matrix t))
+      (when (drag-float "Scale" (tr-scale model) 0.01)
+        (setf update-matrix t))
+      (when (drag-float "Rotate" (tr-rotate model) 0.01)
+        (setf update-matrix t))
+      (when update-matrix
+        (let* ((v-t (destructuring-bind (x y) (tr-translate model)
+                      (3d-vectors:vec x y 0)))
+               (v-s (destructuring-bind (x) (tr-scale model)
+                      (3d-vectors:vec x x 1)))
+               (v-r (first (tr-rotate model)))
+               (loc (gl:get-uniform-location (program *gl-stuff*) "transform"))
+               (mat (3d-matrices:marr
+                     (3d-matrices:m*
+                      (3d-matrices:mtranslation v-t)
+                      (3d-matrices:mrotation 3d-vectors:+vz+ v-r)
+                      (3d-matrices:mscaling v-s)))))
+          (gl:uniform-matrix loc 4 (vector mat)))))))

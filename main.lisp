@@ -31,6 +31,7 @@
   (ql:quickload "cl-opengl")
   (ql:quickload "cl-glfw3")
   (set (find-symbol "*WINDOW*" "GLFW") *glfw-window*)
+  (ql:quickload "3d-matrices")
   (load "main-gl"))
 
 ;; Colors
