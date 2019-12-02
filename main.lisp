@@ -897,6 +897,55 @@
                    (disable :metrics))))))
       (end))))
 
+;; Drag and Drop
+
+(defclass dnd-model ()
+  ((mode :initform :copy :accessor dnd-mode)
+   (names :initform (vector "Bobby" "Beatrice" "Betty"
+                            "Brianna" "Barry" "Bernard"
+                            "Bibi" "Blaine" "Bryn")
+          :accessor dnd-names)))
+
+(defvar *dnd-model*
+  (make-instance 'dnd-model))
+
+(defun show-dnd-window (&optional (model *dnd-model*))
+  (window "Drag & Drop"
+    (text "Drag and drop to copy/swap items")
+    (when (radio-button "Copy" (eq (dnd-mode model) :copy))
+      (setf (dnd-mode model) :copy))
+    (same-line)
+    (when (radio-button "Move" (eq (dnd-mode model) :move))
+      (setf (dnd-mode model) :move))
+    (same-line)
+    (when (radio-button "Swap" (eq (dnd-mode model) :swap))
+      (setf (dnd-mode model) :swap))
+    (loop for i upfrom 0
+          for name across (dnd-names model)
+          do (with-id i
+               (when (plusp (mod i 3))
+                 (same-line))
+               (button name '(60 60))
+               (when (begin-drag-drop-source)
+                 (set-drag-drop-payload i)
+                 (text (format nil "~@(~A~) ~A" (dnd-mode model) name))
+                 (end-drag-drop-source))
+               (when (begin-drag-drop-target)
+                 (let ((payload (accept-drag-drop-payload)))
+                   (when payload
+                     (ecase (dnd-mode model)
+                       (:copy
+                        (setf (aref (dnd-names model) i)
+                              (aref (dnd-names model) payload)))
+                       (:move
+                        (shiftf (aref (dnd-names model) i)
+                                (aref (dnd-names model) payload)
+                                ""))
+                       (:swap
+                        (rotatef (aref (dnd-names model) i)
+                                 (aref (dnd-names model) payload))))))
+                 (end-drag-drop-target))))))
+
 ;; Apps
 
 ;; For lack of a better name, I call them apps.  Currently they are

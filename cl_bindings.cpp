@@ -632,6 +632,29 @@ ImGuiTabBarFlags as_imguicomboflags(cl_object obj)
     return flags;
 }
 
+struct keyword_enum_descriptor imguidragdropflags[] = {
+    {"NONE", ImGuiDragDropFlags_None},
+    {"SOURCE-NO-PREVIEW-TOOLTIP", ImGuiDragDropFlags_SourceNoPreviewTooltip},
+    {"SOURCE-NO-DISABLE-HOVER", ImGuiDragDropFlags_SourceNoDisableHover},
+    {"SOURCE-NO-HOLD-TO-OPEN-OTHERS", ImGuiDragDropFlags_SourceNoHoldToOpenOthers},
+    {"SOURCE-ALLOW-NULL-ID", ImGuiDragDropFlags_SourceAllowNullID},
+    {"SOURCE-EXTERN", ImGuiDragDropFlags_SourceExtern},
+    {"SOURCE-AUTO-EXPIRE-PAYLOAD", ImGuiDragDropFlags_SourceAutoExpirePayload},
+    {"ACCEPT-BEFORE-DELIVERY", ImGuiDragDropFlags_AcceptBeforeDelivery},
+    {"ACCEPT-NO-DRAW-DEFAULT-RECT", ImGuiDragDropFlags_AcceptNoDrawDefaultRect},
+    {"ACCEPT-NO-PREVIEW-TOOLTIP", ImGuiDragDropFlags_AcceptNoPreviewTooltip},
+    {"ACCEPT-PEEK-ONLY", ImGuiDragDropFlags_AcceptPeekOnly},
+};
+
+ImGuiDragDropFlags as_imguidragdropflags(cl_object obj)
+{
+    ImGuiDragDropFlags flags = ImGuiDragDropFlags_None;
+    if (obj != ECL_NIL) {
+        flags = keyword_flags_value(obj, imguidragdropflags, LENGTHOF(imguidragdropflags));
+    }
+    return flags;
+}
+
 // The actual bindings
 
 APIFUNC(begin)
@@ -2971,6 +2994,68 @@ APIFUNC(loadtexture)
 }
 APIFUNC_END
 
+APIFUNC(begindragdropsource)
+{
+    ImGuiDragDropFlags flags = POPARG(as_imguidragdropflags, ImGuiDragDropFlags_None);
+    bool ret = ImGui::BeginDragDropSource(flags);
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(setdragdroppayload)
+{
+    cl_object object = POPARG(as_object, ECL_NIL);
+    const char *type = "cl_object";
+    const void *data = NULL;
+    size_t sz = 0;
+    ImGuiCond cond = POPARG(as_imguicond, ImGuiCond_Always);
+    bool ret = ImGui::SetDragDropPayload(type, data, sz, cond);
+    if (ret) {
+        cl_set(ecl_read_from_cstring("*im-drag-drop-payload*"), object);
+    }
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(enddragdropsource)
+{
+    ImGui::EndDragDropSource();
+}
+APIFUNC_END
+
+APIFUNC(begindragdroptarget)
+{
+    bool ret = ImGui::BeginDragDropTarget();
+    RETBOOL(ret);
+}
+APIFUNC_END
+
+APIFUNC(acceptdragdroppayload)
+{
+    const char *type = "cl_object";
+    ImGuiDragDropFlags flags = POPARG(as_imguidragdropflags, ImGuiDragDropFlags_None);
+    const ImGuiPayload *payload = ImGui::AcceptDragDropPayload(type, flags);
+    if (payload) {
+        result = ecl_symbol_value(ecl_read_from_cstring("*im-drag-drop-payload*"));
+    }
+}
+APIFUNC_END
+
+APIFUNC(enddragdroptarget)
+{
+    ImGui::EndDragDropTarget();
+}
+APIFUNC_END
+
+APIFUNC(getdragdroppayload)
+{
+    const ImGuiPayload *payload = ImGui::GetDragDropPayload();
+    if (payload && payload->IsDataType("cl_object")) {
+        result = ecl_symbol_value(ecl_read_from_cstring("*im-drag-drop-payload*"));
+    }
+}
+APIFUNC_END
+
 // Bindings definition
 
 static void define(const char *name, cl_objectfn fn)
@@ -3192,6 +3277,13 @@ void cl_define_bindings()
     define("plot-histogram", clapi_plothistogram);
     define("image", clapi_image);
     define("image-button", clapi_imagebutton);
+    define("begin-drag-drop-source", clapi_begindragdropsource);
+    define("set-drag-drop-payload", clapi_setdragdroppayload);
+    define("end-drag-drop-source", clapi_enddragdropsource);
+    define("begin-drag-drop-target", clapi_begindragdroptarget);
+    define("accept-drag-drop-payload", clapi_acceptdragdroppayload);
+    define("end-drag-drop-target", clapi_enddragdroptarget);
+    define("get-drag-drop-payload", clapi_getdragdroppayload);
 
     // Convenience functions not part of imgui
     define("load-texture", clapi_loadtexture);

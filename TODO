@@ -81,33 +81,6 @@ IMGUI_API ImU32         GetColorU32(const ImVec4& col);
 // retrieve given color with style alpha applied
 IMGUI_API ImU32         GetColorU32(ImU32 col);
 
-// Widgets: Main
-
-// - Most widgets return true when the value has been changed or when pressed/selected
-
-IMGUI_API void          Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0,0), const ImVec2& uv1 = ImVec2(1,1), const ImVec4& tint_col = ImVec4(1,1,1,1), const ImVec4& border_col = ImVec4(0,0,0,0));
-// <0 frame_padding uses default frame padding settings. 0 for no padding
-IMGUI_API bool          ImageButton(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0,0),  const ImVec2& uv1 = ImVec2(1,1), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0,0,0,0), const ImVec4& tint_col = ImVec4(1,1,1,1));
-
-// Drag and Drop
-
-// [BETA API] API may evolve!
-
-// call when the current item is active. If this return true, you can call SetDragDropPayload() + EndDragDropSource()
-IMGUI_API bool          BeginDragDropSource(ImGuiDragDropFlags flags = 0);
-// type is a user defined string of maximum 32 characters. Strings starting with '_' are reserved for dear imgui internal types. Data is copied and held by imgui.
-IMGUI_API bool          SetDragDropPayload(const char* type, const void* data, size_t sz, ImGuiCond cond = 0);
-// only call EndDragDropSource() if BeginDragDropSource() returns true!
-IMGUI_API void          EndDragDropSource();
-// call after submitting an item that may receive a payload. If this returns true, you can call AcceptDragDropPayload() + EndDragDropTarget()
-IMGUI_API bool                  BeginDragDropTarget();
-// accept contents of a given type. If ImGuiDragDropFlags_AcceptBeforeDelivery is set you can peek into the payload before the mouse button is released.
-IMGUI_API const ImGuiPayload*   AcceptDragDropPayload(const char* type, ImGuiDragDropFlags flags = 0);
-// only call EndDragDropTarget() if BeginDragDropTarget() returns true!
-IMGUI_API void                  EndDragDropTarget();
-// peek directly into the current payload from anywhere. may return NULL. use ImGuiPayload::IsDataType() to test for the payload type.
-IMGUI_API const ImGuiPayload*   GetDragDropPayload();
-
 // Miscellaneous Utilities
 
 // this draw list will be the first rendering one. Useful to quickly draw shapes/text behind dear imgui contents.
