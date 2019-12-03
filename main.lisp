@@ -164,6 +164,59 @@
      (unwind-protect (progn ,@forms)
        (end-listbox))))
 
+;; Menus
+
+(defvar *main-menu*
+  '(("Trivial"
+     ("Menu Test" show-menu-test)
+     ("Window Test" window-test)
+     ("Current Time" window-current-time)
+     ("Clipboard Test" show-clipboard-test)
+     ("Style Chooser" show-style-chooser)
+     ("Demo" show-demo-window))
+    ("Easy"
+     ("Calculator" window-calc)
+     ("Property Editor" window-property-editor)
+     ("Inspector" window-inspector)
+     ("CL Package Inspector" app-cl-package-inspector)
+     ("Metrics" app-metrics)
+     ("Basic Widgets" show-basic-widgets)
+     ("Colors" show-colors-window)
+     ("Information" show-info-window)
+     ("Drag & Drop" show-dnd-window))
+    ("OpenGL"
+     ("Setup environment" (setup-gl-environment)))
+    ("Windows"
+     ("Close All" remove-all-apps))))
+
+(defun main-menu ()
+  (when (begin-main-menu-bar)
+    (loop for (menu . items) in *main-menu*
+          do (when (begin-menu menu)
+               (dolist (entry items)
+                 (if (eq entry :separator)
+                     (separator)
+                     (destructuring-bind (name form) entry
+                       (when (menu-item name)
+                         (cond ((symbolp form)
+                                (app-add form))
+                               ((listp form)
+                                (apply (car form) (cdr form))))))))
+               (end-menu)))
+    (end-main-menu-bar)))
+
+(defun show-menu-test ()
+  (when (begin "Menus" :menu-bar)
+    (when (begin-menu-bar)
+      (when (begin-menu "Menu")
+        (when (begin-menu "Submenu")
+          (when (menu-item "Close")
+            (app-remove 'show-menu-test))
+          (end-menu))
+        (end-menu))
+      (end-menu-bar))
+    (end)))
+
 ;; Calculator
 
 (defvar *stack* '())
@@ -687,34 +740,6 @@
           (separator)
           (color-edit "RGBA edit" (colors-window-color2 model) '(:alpha-bar :no-inputs :alpha-preview)))))))
 
-;; Menus
-
-(defvar *add-main-menu* nil)
-
-(defun add-main-menu ()
-  (when (begin-main-menu-bar)
-    (when (begin-menu "Hello")
-      (when (menu-item "Die")
-        (setf *add-main-menu* nil))
-      (end-menu))
-    (end-main-menu-bar)))
-
-(defun show-menu-test ()
-  (when (begin "Menus" :menu-bar)
-    (when (begin-menu-bar)
-      (when (begin-menu "Menu")
-        (when (begin-menu "Submenu")
-          (when (menu-item "Close")
-            (app-remove 'show-menu-test))
-          (end-menu))
-        (end-menu))
-      (end-menu-bar))
-    (when (button "Main menu")
-      (setf *add-main-menu* (not *add-main-menu*)))
-    (end))
-  (when *add-main-menu*
-    (add-main-menu)))
-
 ;; Info
 
 (defun yesno (boolean)
@@ -970,6 +995,9 @@
                    :count 1))
   t)
 
+(defun remove-all-apps ()
+  (setf *apps* nil))
+
 (defvar *current-app* nil)
 
 (defmacro with-error-reporting (&body forms)
@@ -1003,12 +1031,15 @@
 (defun init ()
   "INIT runs right after this file is loaded."
   ;; (setup-gl-environment)
-  (app-add 'show-demo-window))
+  )
 
 (defun im-tick ()
   "IM-TICK runs on each iteration of the UI loop."
-  (app-tick))
+  (with-simple-restart (skip "Skip this tick")
+    (main-menu)
+    (app-tick)))
 
 (defun gl-tick ()
   "GL-TICK runs on each iteration of the UI loop, before imgui
-rendering.")
+rendering."
+  (with-simple-restart (skip "Skip this tick")))

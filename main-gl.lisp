@@ -197,14 +197,15 @@ rendering."
             (push entity (entities alien))
             (push tr (tr-transformables model))
             (setf (tr-current model) tr)))))
-    (list-box ("Transformables" (length (tr-transformables model)) 5)
-      (let ((id 0))
-        (dolist (tr (tr-transformables model))
-          (with-id id
-            (when (selectable (format nil "~S" (tr-entity tr))
-                              (eq tr (tr-current model)))
-              (setf (tr-current model) tr)))
-          (incf id))))
+    (when (tr-transformables model)
+      (list-box ("Transformables" (length (tr-transformables model)) 5)
+        (let ((id 0))
+          (dolist (tr (tr-transformables model))
+            (with-id id
+              (when (selectable (format nil "~S" (tr-entity tr))
+                                (eq tr (tr-current model)))
+                (setf (tr-current model) tr)))
+            (incf id)))))
     (let ((tr (tr-current model)))
       (when tr
         (let ((update-matrix nil))
@@ -231,3 +232,16 @@ rendering."
                   (remove tr (tr-transformables model)))
             (setf (tr-current model)
                   (first (tr-transformables model)))))))))
+
+(defvar *gl-menu-items*
+  '(("Transform" show-transform)))
+
+(defun change-main-menu ()
+  (setf *main-menu*
+        (mapcar (lambda (entry)
+                  (if (equal (car entry) "OpenGL")
+                      (cons "OpenGL" *gl-menu-items*)
+                      entry))
+                *main-menu*)))
+
+(change-main-menu)
