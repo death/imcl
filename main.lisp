@@ -77,23 +77,22 @@
 ;; Convenience operators
 
 (defmacro window (name &body forms)
-  `(unwind-protect
-        (when (begin ,name)
-          ,@forms)
-     (end)))
+  (let ((ret (gensym)))
+    `(let ((,ret (begin ,name)))
+       (unwind-protect (when ,ret ,@forms)
+         (end)))))
 
 (defmacro tooltip (&body forms)
-  `(unwind-protect
-        (progn
-          (begin-tooltip)
-          ,@forms)
-     (end-tooltip)))
+  `(progn
+     (begin-tooltip)
+     (unwind-protect (progn ,@forms)
+       (end-tooltip))))
 
 (defmacro group (&body forms)
   `(progn
      (begin-group)
-     ,@forms
-     (end-group)))
+     (unwind-protect (progn ,@forms)
+       (end-group))))
 
 (defmacro with-style ((&rest properties) &body forms)
   (cond ((null properties)
@@ -144,26 +143,26 @@
 (defmacro child ((name &rest more-args) &body forms)
   `(progn
      (begin-child ,name ,@more-args)
-     (unwind-protect
-          (progn ,@forms)
+     (unwind-protect (progn ,@forms)
        (end-child))))
 
 (defmacro tab-bar (&body forms)
-  `(progn
-     (when (begin-tab-bar)
-       (unwind-protect
-            (progn ,@forms)
-         (end-tab-bar)))))
+  `(when (begin-tab-bar)
+     (unwind-protect (progn ,@forms)
+       (end-tab-bar))))
 
 (defmacro tab-item (label &body forms)
-  `(progn
-     (when (begin-tab-item ,label)
-       (unwind-protect
-            (progn ,@forms)
-         (end-tab-item)))))
+  `(when (begin-tab-item ,label)
+     (unwind-protect (progn ,@forms)
+       (end-tab-item))))
 
 (defun text-colored (color text)
   (%text-colored (color color) text))
+
+(defmacro list-box ((name &rest more-args) &body forms)
+  `(when (begin-listbox ,name ,@more-args)
+     (unwind-protect (progn ,@forms)
+       (end-listbox))))
 
 ;; Calculator
 
