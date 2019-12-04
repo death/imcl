@@ -233,6 +233,8 @@ rendering."
             (setf (tr-current model)
                   (first (tr-transformables model)))))))))
 
+;; Main menu
+
 (defvar *gl-menu-items*
   '(("Transform" show-transform)))
 
