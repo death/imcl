@@ -45,5 +45,7 @@ IMGUI_IMPL_API void     ImGui_ImplOpenGL3_DestroyFontsTexture();
 IMGUI_IMPL_API bool     ImGui_ImplOpenGL3_CreateDeviceObjects();
 IMGUI_IMPL_API void     ImGui_ImplOpenGL3_DestroyDeviceObjects();
 
-// Convenience function to load an image file as texture
+// Convenience function to manipulate textures
 unsigned int LoadTexture(const char *filename, int *width, int *height, int *nchannels);
+void DeleteTexture(unsigned int texture);
+unsigned int CreateTexture(int width, int height, int nchannels, const void *data);

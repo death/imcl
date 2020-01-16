@@ -607,35 +607,13 @@ unsigned int LoadTexture(const char *filename, int *width, int *height, int *nch
     int c;
     unsigned char *data;
     unsigned int texture;
-    int format;
 
     data = stbi_load(filename, &w, &h, &c, 0);
     if (!data) {
         return 0;
     }
 
-    switch (c) {
-    case 1:
-        format = GL_RED;
-        break;
-    case 2:
-        // FIXME: Not really red/green, but red/alpha
-        format = GL_RG;
-        break;
-    case 3:
-        format = GL_RGB;
-        break;
-    case 4:
-        format = GL_RGBA;
-        break;
-    }
-
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, data);
+    texture = CreateTexture(w, h, c, data);
 
     stbi_image_free(data);
 
@@ -649,5 +627,41 @@ unsigned int LoadTexture(const char *filename, int *width, int *height, int *nch
         *nchannels = c;
     }
 
+    return texture;
+}
+
+void DeleteTexture(unsigned int texture)
+{
+    glDeleteTextures(1, &texture);
+}
+
+unsigned int CreateTexture(int width, int height, int nchannels, const void *data)
+{
+    unsigned int texture;
+    int format;
+
+    switch (nchannels) {
+    case 1:
+        format = GL_RED;
+        break;
+    case 2:
+        // FIXME: Not really red/green, but red/alpha
+        format = GL_RG;
+        break;
+    case 3:
+        format = GL_RGB;
+        break;
+    case 4:
+    default:
+        format = GL_RGBA;
+        break;
+    }
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     return texture;
 }

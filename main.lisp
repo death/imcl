@@ -164,6 +164,74 @@
      (unwind-protect (progn ,@forms)
        (end-listbox))))
 
+;; Apps
+
+;; For lack of a better name, I call them apps.  Currently they are
+;; composed of an entry point, which is a function that runs every
+;; tick, and a UI state, which begins as "normal" but can transition
+;; into "error" in case an error escapes the app.
+
+(defstruct app
+  entry-point
+  (ui-state '(:normal)))
+
+(defvar *apps* '())
+
+(defun app-add (entry-point)
+  (push (make-app :entry-point entry-point) *apps*)
+  t)
+
+(defun app-remove (entry-point)
+  (setf *apps*
+        (remove-if (lambda (app)
+                     (eql (app-entry-point app) entry-point))
+                   *apps*
+                   :count 1))
+  t)
+
+(defun remove-all-apps ()
+  (setf *apps* nil))
+
+(defun app-activep (entry-point)
+  (find-if (lambda (app)
+             (eql (app-entry-point app) entry-point))
+           *apps*))
+
+(defvar *current-app* nil)
+
+(defmacro with-error-reporting (&body forms)
+  `(handler-case (progn ,@forms)
+     (error (e)
+       (setf (app-ui-state *current-app*)
+             (list :error e)))))
+
+(defun window-error-report (condition)
+  (window "Lisp error"
+    (with-style-color (:text :red)
+      (text (format nil "A Lisp error of type ~S was encountered"
+                    (type-of condition))))
+    (text (princ-to-string condition))
+    (when (button "Retry")
+      (setf (app-ui-state *current-app*)
+            '(:normal)))))
+
+(defun app-tick ()
+  (with-simple-restart (return-from-app-tick "Return from APP-TICK")
+    (dolist (*current-app* *apps*)
+      (ecase (car (app-ui-state *current-app*))
+        (:normal
+         (with-error-reporting
+           (funcall (app-entry-point *current-app*))))
+        (:error
+         (window-error-report (cadr (app-ui-state *current-app*))))))))
+
+(defmacro defonce (&body forms)
+  `(labels ((app ()
+              (unwind-protect
+                   (progn ,@forms)
+                (app-remove #'app))))
+     (app-add #'app)))
+
 ;; Menus
 
 (defvar *main-menu*
@@ -970,61 +1038,89 @@
                                  (aref (dnd-names model) payload))))))
                  (end-drag-drop-target))))))
 
-;; Apps
+;; Textures
 
-;; For lack of a better name, I call them apps.  Currently they are
-;; composed of an entry point, which is a function that runs every
-;; tick, and a UI state, which begins as "normal" but can transition
-;; into "error" in case an error escapes the app.
+(defclass texture-test-model ()
+  ((texture :initform nil :accessor tt-texture)
+   (width :initform nil :accessor tt-width)
+   (height :initform nil :accessor tt-height)))
 
-(defstruct app
-  entry-point
-  (ui-state '(:normal)))
+(defvar *texture-test-model*
+  (make-instance 'texture-test-model))
 
-(defvar *apps* '())
+(defun show-texture-test (&optional (model *texture-test-model*))
+  (window "Textures"
+    (when (null (tt-texture model))
+      (setf (values (tt-texture model)
+                    (tt-width model)
+                    (tt-height model))
+            (load-texture "lisplogo_alien_256.png")))
+    (when (tt-texture model)
+      (image (tt-texture model)
+             (list (tt-width model) (tt-height model))))))
 
-(defun app-add (entry-point)
-  (push (make-app :entry-point entry-point) *apps*)
-  t)
+;; Vecto fun
 
-(defun app-remove (entry-point)
-  (setf *apps*
-        (remove-if (lambda (app)
-                     (eql (app-entry-point app) entry-point))
-                   *apps*
-                   :count 1))
-  t)
+(ql:quickload "vecto")
 
-(defun remove-all-apps ()
-  (setf *apps* nil))
+(defclass vecto-fun-model ()
+  ((texture :initform nil :accessor vf-texture)
+   (width :initform nil :accessor vf-width)
+   (height :initform nil :accessor vf-height)))
 
-(defvar *current-app* nil)
+(defvar *vecto-fun-model*
+  (make-instance 'vecto-fun-model))
 
-(defmacro with-error-reporting (&body forms)
-  `(handler-case (progn ,@forms)
-     (error (e)
-       (setf (app-ui-state *current-app*)
-             (list :error e)))))
+(defun show-vecto-fun (&optional (model *vecto-fun-model*))
+  (window "Vecto Fun"
+    (when (vf-texture model)
+      (image (vf-texture model)
+             (list (vf-width model) (vf-height model))))))
 
-(defun window-error-report (condition)
-  (window "Lisp error"
-    (with-style-color (:text :red)
-      (text (format nil "A Lisp error of type ~S was encountered"
-                    (type-of condition))))
-    (text (princ-to-string condition))
-    (when (button "Retry")
-      (setf (app-ui-state *current-app*)
-            '(:normal)))))
+(defun vecto-save-texture (&optional (model *vecto-fun-model*))
+  (let* ((state vecto::*graphics-state*)
+         (width (vecto::width state))
+         (height (vecto::height state))
+         (image (vecto::image state))
+         (data (zpng:image-data image))
+         (texture (create-texture width height 4 data)))
+    (when (vf-texture model)
+      (delete-texture (vf-texture model))
+      (setf (vf-texture model) nil))
+    (setf (vf-width model) width)
+    (setf (vf-height model) height)
+    (setf (vf-texture model) texture)))
 
-(defun app-tick ()
-  (with-simple-restart (return-from-app-tick "Return from APP-TICK")
-    (dolist (*current-app* *apps*)
-      (ecase (car (app-ui-state *current-app*))
-        (:normal
-         (with-error-reporting
-           (funcall (app-entry-point *current-app*))))
-        (:error
-         (window-error-report (cadr (app-ui-state *current-app*))))))))
+(when (app-activep 'show-vecto-fun)
+  (defonce
+    (let ((width 100)
+          (height 100))
+      ;; Example taken from vecto's doc/examples.lisp
+      (vecto:with-canvas (:width width :height height)
+        (vecto:set-rgb-fill 1.0 0.65 0.3)
+        (vecto:rounded-rectangle 0 0 100 100 10 10)
+        (vecto:fill-path)
+        (vecto:set-rgb-fill 1.0 1.0 1.0)
+        (vecto:centered-circle-path 20 20 10)
+        (vecto:fill-path)
+        (flet ((quarter-circle (x y radius)
+                 (vecto:move-to (+ x radius) y)
+                 (vecto:arc x y radius 0 (/ pi 2))))
+          (vecto:set-rgb-stroke 1.0 1.0 1.0)
+          (vecto:set-line-width 15)
+          (quarter-circle 20 20 30)
+          (vecto:stroke)
+          (quarter-circle 20 20 60)
+          (vecto:stroke))
+        (vecto:rounded-rectangle 5 5 90 90 7 7)
+        (vecto:set-gradient-fill 50 90
+                                 1.0 1.0 1.0 0.7
+                                 50 20
+                                 1.0 1.0 1.0 0.0)
+        (vecto:set-line-width 2)
+        (vecto:set-rgba-stroke 1.0 1.0 1.0 0.1)
+        (vecto:fill-and-stroke)
+        (vecto-save-texture)))))
 
 ;; Entry points
 

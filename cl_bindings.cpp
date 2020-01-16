@@ -2994,6 +2994,36 @@ APIFUNC(loadtexture)
 }
 APIFUNC_END
 
+APIFUNC(createtexture)
+{
+    int width = POPARG(as_int, 0);
+    int height = POPARG(as_int, 0);
+    int nchannels = POPARG(as_int, 0);
+    cl_object data = POPARG(as_object, ECL_NIL);
+    if (width >= 0 && height >= 0) {
+        if (nchannels >= 1 && nchannels <= 4) {
+            if (ECL_ARRAYP(data) && ecl_array_elttype(data) == ecl_aet_b8) {
+                int expected_size = width * height * nchannels;
+                if (ecl_length(data) == expected_size) {
+                    const void *ptr = ecl_row_major_ptr(data, 0, 0);
+                    unsigned int texture = CreateTexture(width, height, nchannels, ptr);
+                    RETUINT(texture);
+                }
+            }
+        }
+    }
+}
+APIFUNC_END
+
+APIFUNC(deletetexture)
+{
+    unsigned int texture_id = POPARG(as_uint, 0U);
+    if (texture_id) {
+        DeleteTexture(texture_id);
+    }
+}
+APIFUNC_END
+
 APIFUNC(begindragdropsource)
 {
     ImGuiDragDropFlags flags = POPARG(as_imguidragdropflags, ImGuiDragDropFlags_None);
@@ -3287,4 +3317,6 @@ void cl_define_bindings()
 
     // Convenience functions not part of imgui
     define("load-texture", clapi_loadtexture);
+    define("create-texture", clapi_createtexture);
+    define("delete-texture", clapi_deletetexture);
 }
