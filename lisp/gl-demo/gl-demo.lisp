@@ -1,3 +1,14 @@
+;;;; +----------------------------------------------------------------+
+;;;; | IMGUI-ECL                                                      |
+;;;; +----------------------------------------------------------------+
+
+(defpackage #:gl-demo
+  (:use #:cl #:imgui)
+  (:export
+   #:setup))
+
+(in-package #:gl-demo)
+
 ;; Utilities
 
 (defconstant deg-to-rad-factor
@@ -72,7 +83,7 @@
     (setf (scene-alien *scene*) (make-alien)))
   (draw (scene-alien *scene*)))
 
-(defun gl-tick ()
+(defun cl-user::gl-tick ()
   "GL-TICK runs on each iteration of the UI loop, before imgui
 rendering."
   (with-simple-restart (skip "Skip this tick")
@@ -233,17 +244,15 @@ rendering."
             (setf (tr-current model)
                   (first (tr-transformables model)))))))))
 
-;; Main menu
+;; Setup
 
 (defvar *gl-menu-items*
   '(("Transform" show-transform)))
 
-(defun change-main-menu ()
-  (setf *main-menu*
-        (mapcar (lambda (entry)
+(defun setup (main-menu)
+  (setf glfw:*window* *glfw-window*)
+  (mapcar (lambda (entry)
                   (if (equal (car entry) "OpenGL")
                       (cons "OpenGL" *gl-menu-items*)
                       entry))
-                *main-menu*)))
-
-(change-main-menu)
+          main-menu))

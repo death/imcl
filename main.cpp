@@ -8,7 +8,6 @@
 #include "cl_bindings.hpp"
 #include <stdio.h>
 #include <math.h>
-#include <ecl/ecl.h>
 #include <sstream>
 #include <iostream>
 
@@ -148,13 +147,12 @@ int main(int argc, char **argv)
     cl_define_bindings();
 
     cl_object window_cl = ecl_make_pointer(window);
-    ecl_shadow(ecl_read_from_cstring("*glfw-window*"), ecl_current_package());
-    cl_set(ecl_read_from_cstring("*glfw-window*"), window_cl);
+    cl_set(imgui_intern_and_export("*GLFW-WINDOW*"), window_cl);
 
-    cl_object time_in_imtick_var = ecl_read_from_cstring("*time-in-im-tick*");
+    cl_object time_in_imtick_var = imgui_intern_and_export("*TIME-IN-IM-TICK*");
     cl_set(time_in_imtick_var, ecl_make_int32_t(0));
 
-    cl_object time_in_gltick_var = ecl_read_from_cstring("*time-in-gl-tick*");
+    cl_object time_in_gltick_var = imgui_intern_and_export("*TIME-IN-GL-TICK*");
     cl_set(time_in_gltick_var, ecl_make_int32_t(0));
 
     cl_eval(c_string_to_object("(load \"main\")"));

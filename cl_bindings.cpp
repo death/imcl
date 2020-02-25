@@ -80,6 +80,41 @@ static cl_object as_object(cl_object obj)
     result1 = ecl_make_single_float((v).x);     \
     result2 = ecl_make_single_float((v).y);
 
+// Our gui package
+
+cl_object imgui_package()
+{
+    static cl_object package = ECL_NIL;
+    if (package == ECL_NIL) {
+        package = ecl_make_package(ecl_cstring_to_base_string_or_nil("IMGUI"),
+                                   cl_list(1, ecl_cstring_to_base_string_or_nil("UI")),
+                                   ecl_list1(cl_core.lisp_package),
+                                   ECL_NIL);
+    }
+    return package;
+}
+
+static cl_object intern(const char *name)
+{
+    cl_object package = imgui_package();
+    return _ecl_intern(name, package);
+}
+
+cl_object imgui_intern_and_export(const char *name)
+{
+    cl_object package = imgui_package();
+    cl_object symbol = _ecl_intern(name, package);
+    cl_export2(symbol, package);
+    return symbol;
+}
+
+static cl_object define(const char *name, cl_objectfn fn)
+{
+    cl_object symbol = imgui_intern_and_export(name);
+    ecl_def_c_function_va(symbol, fn);
+    return symbol;
+}
+
 // Translating keywords to enum values and vice versa
 
 struct keyword_enum_descriptor
@@ -3041,7 +3076,7 @@ APIFUNC(setdragdroppayload)
     ImGuiCond cond = POPARG(as_imguicond, ImGuiCond_Always);
     bool ret = ImGui::SetDragDropPayload(type, data, sz, cond);
     if (ret) {
-        cl_set(ecl_read_from_cstring("*im-drag-drop-payload*"), object);
+        cl_set(intern("*IM-DRAG-DROP-PAYLOAD*"), object);
     }
     RETBOOL(ret);
 }
@@ -3066,7 +3101,7 @@ APIFUNC(acceptdragdroppayload)
     ImGuiDragDropFlags flags = POPARG(as_imguidragdropflags, ImGuiDragDropFlags_None);
     const ImGuiPayload *payload = ImGui::AcceptDragDropPayload(type, flags);
     if (payload) {
-        result = ecl_symbol_value(ecl_read_from_cstring("*im-drag-drop-payload*"));
+        result = ecl_symbol_value(intern("*IM-DRAG-DROP-PAYLOAD*"));
     }
 }
 APIFUNC_END
@@ -3081,242 +3116,236 @@ APIFUNC(getdragdroppayload)
 {
     const ImGuiPayload *payload = ImGui::GetDragDropPayload();
     if (payload && payload->IsDataType("cl_object")) {
-        result = ecl_symbol_value(ecl_read_from_cstring("*im-drag-drop-payload*"));
+        result = ecl_symbol_value(intern("*IM-DRAG-DROP-PAYLOAD*"));
     }
 }
 APIFUNC_END
 
 // Bindings definition
 
-static void define(const char *name, cl_objectfn fn)
-{
-    ecl_shadow(ecl_read_from_cstring(name), ecl_current_package());
-    ecl_def_c_function_va(ecl_read_from_cstring(name), fn);
-}
-
 void cl_define_bindings()
 {
-    define("begin", clapi_begin);
-    define("end", clapi_end);
-    define("text", clapi_text);
-    define("%text-colored", clapi_textcolored);
-    define("text-disabled", clapi_textdisabled);
-    define("text-wrapped", clapi_textwrapped);
-    define("label-text", clapi_labeltext);
-    define("bullet-text", clapi_bullettext);
-    define("button", clapi_button);
-    define("same-line", clapi_sameline);
-    define("separator", clapi_separator);
-    define("begin-group", clapi_begingroup);
-    define("end-group", clapi_endgroup);
-    define("push-item-width", clapi_pushitemwidth);
-    define("pop-item-width", clapi_popitemwidth);
-    define("collapsing-header", clapi_collapsingheader);
-    define("spacing", clapi_spacing);
-    define("tree-node", clapi_treenode);
-    define("tree-pop", clapi_treepop);
-    define("set-next-item-width", clapi_setnextitemwidth);
-    define("push-style-var", clapi_pushstylevar);
-    define("pop-style-var", clapi_popstylevar);
-    define("columns", clapi_columns);
-    define("push-id", clapi_pushid);
-    define("pop-id", clapi_popid);
-    define("align-text-to-frame-padding", clapi_aligntexttoframepadding);
-    define("next-column", clapi_nextcolumn);
-    define("set-next-window-size", clapi_setnextwindowsize);
-    define("begin-child", clapi_beginchild);
-    define("end-child", clapi_endchild);
-    define("selectable", clapi_selectable);
-    define("push-style-color", clapi_pushstylecolor);
-    define("pop-style-color", clapi_popstylecolor);
-    define("show-demo-window", clapi_showdemowindow);
-    define("checkbox", clapi_checkbox);
-    define("radio-button", clapi_radiobutton);
-    define("item-hovered-p", clapi_isitemhovered);
-    define("set-tooltip", clapi_settooltip);
-    define("begin-tooltip", clapi_begintooltip);
-    define("end-tooltip", clapi_endtooltip);
-    define("get-clipboard-text", clapi_getclipboardtext);
-    define("set-clipboard-text", clapi_setclipboardtext);
-    define("begin-tab-bar", clapi_begintabbar);
-    define("end-tab-bar", clapi_endtabbar);
-    define("begin-tab-item", clapi_begintabitem);
-    define("end-tab-item", clapi_endtabitem);
-    define("set-tab-item-closed", clapi_settabitemclosed);
-    define("set-item-default-focus", clapi_setitemdefaultfocus);
-    define("set-keyboard-focus-here", clapi_setkeyboardfocushere);
-    define("style-colors", clapi_stylecolors);
-    define("begin-combo", clapi_begincombo);
-    define("end-combo", clapi_endcombo);
-    define("begin-listbox", clapi_beginlistbox);
-    define("end-listbox", clapi_endlistbox);
-    define("begin-main-menu-bar", clapi_beginmainmenubar);
-    define("end-main-menu-bar", clapi_endmainmenubar);
-    define("begin-menu-bar", clapi_beginmenubar);
-    define("end-menu-bar", clapi_endmenubar);
-    define("begin-menu", clapi_beginmenu);
-    define("end-menu", clapi_endmenu);
-    define("menu-item", clapi_menuitem);
-    define("get-scroll-x", clapi_getscrollx);
-    define("get-scroll-y", clapi_getscrollx);
-    define("get-scroll-max-x", clapi_getscrollmaxx);
-    define("get-scroll-max-y", clapi_getscrollmaxy);
-    define("set-scroll-x", clapi_setscrollx);
-    define("set-scroll-y", clapi_setscrolly);
-    define("set-scroll-here-y", clapi_setscrollherey);
-    define("set-scroll-from-pos-y", clapi_setscrollfromposy);
-    define("slider-float", clapi_sliderfloat);
-    define("slider-angle", clapi_sliderangle);
-    define("slider-int", clapi_sliderint);
-    define("vslider-float", clapi_vsliderfloat);
-    define("vslider-int", clapi_vsliderint);
-    define("window-appearing-p", clapi_iswindowappearing);
-    define("window-collapsed-p", clapi_iswindowcollapsed);
-    define("window-focused-p", clapi_iswindowfocused);
-    define("window-hovered-p", clapi_iswindowhovered);
-    define("get-window-pos", clapi_getwindowpos);
-    define("get-window-size", clapi_getwindowsize);
-    define("set-next-window-pos", clapi_setnextwindowpos);
-    define("set-next-window-content-size", clapi_setnextwindowcontentsize);
-    define("set-next-window-collapsed", clapi_setnextwindowcollapsed);
-    define("set-next-window-focus", clapi_setnextwindowfocus);
-    define("set-next-window-bg-alpha", clapi_setnextwindowbgalpha);
-    define("set-window-pos", clapi_setwindowpos);
-    define("set-window-size", clapi_setwindowsize);
-    define("set-window-collapsed", clapi_setwindowcollapsed);
-    define("set-window-focus", clapi_setwindowfocus);
-    define("set-window-font-scale", clapi_setwindowfontscale);
-    define("calc-item-width", clapi_calcitemwidth);
-    define("push-text-wrap-pos", clapi_pushtextwrappos);
-    define("pop-text-wrap-pos", clapi_poptextwrappos);
-    define("push-allow-keyboard-focus", clapi_pushallowkeyboardfocus);
-    define("pop-allow-keyboard-focus", clapi_popallowkeyboardfocus);
-    define("push-button-repeat", clapi_pushbuttonrepeat);
-    define("pop-button-repeat", clapi_popbuttonrepeat);
-    define("new-line", clapi_newline);
-    define("dummy", clapi_dummy);
-    define("indent", clapi_indent);
-    define("unindent", clapi_unindent);
-    define("get-cursor-pos", clapi_getcursorpos);
-    define("set-cursor-pos", clapi_setcursorpos);
-    define("get-cursor-start-pos", clapi_getcursorstartpos);
-    define("get-cursor-screen-pos", clapi_getcursorscreenpos);
-    define("set-cursor-screen-pos", clapi_setcursorscreenpos);
-    define("get-text-line-height", clapi_gettextlineheight);
-    define("get-text-line-height-with-spacing", clapi_gettextlineheightwithspacing);
-    define("get-frame-height", clapi_getframeheight);
-    define("get-frame-height-with-spacing", clapi_getframeheightwithspacing);
-    define("small-button", clapi_smallbutton);
-    define("invisible-button", clapi_invisiblebutton);
-    define("arrow-button", clapi_arrowbutton);
-    define("bullet", clapi_bullet);
-    define("get-content-region-max", clapi_getcontentregionmax);
-    define("get-content-region-avail", clapi_getcontentregionavail);
-    define("get-window-content-region-min", clapi_getwindowcontentregionmin);
-    define("get-window-content-region-max", clapi_getwindowcontentregionmax);
-    define("progress-bar", clapi_progressbar);
-    define("item-active-p", clapi_isitemactive);
-    define("item-focused-p", clapi_isitemfocused);
-    define("item-clicked-p", clapi_isitemclicked);
-    define("item-visible-p", clapi_isitemvisible);
-    define("item-edited-p", clapi_isitemedited);
-    define("item-activated-p", clapi_isitemactivated);
-    define("item-deactivated-p", clapi_isitemdeactivated);
-    define("item-deactivated-after-edit-p", clapi_isitemdeactivatedafteredit);
-    define("any-item-hovered-p", clapi_isanyitemhovered);
-    define("any-item-active-p", clapi_isanyitemactive);
-    define("any-item-focused-p", clapi_isanyitemfocused);
-    define("drag-float", clapi_dragfloat);
-    define("input-float", clapi_inputfloat);
-    define("drag-int", clapi_dragint);
-    define("input-int", clapi_inputint);
-    define("get-column-index", clapi_getcolumnindex);
-    define("get-column-width", clapi_getcolumnwidth);
-    define("set-column-width", clapi_setcolumnwidth);
-    define("get-column-offset", clapi_getcolumnoffset);
-    define("set-column-offset", clapi_setcolumnoffset);
-    define("get-columns-count", clapi_getcolumnscount);
-    define("show-about-window", clapi_showaboutwindow);
-    define("show-metrics-window", clapi_showmetricswindow);
-    define("show-style-editor", clapi_showstyleeditor);
-    define("show-style-selector", clapi_showstyleselector);
-    define("show-font-selector", clapi_showfontselector);
-    define("show-user-guide", clapi_showuserguide);
-    define("imgui-version", clapi_getversion);
-    define("get-item-rect-min", clapi_getitemrectmin);
-    define("get-item-rect-max", clapi_getitemrectmax);
-    define("get-item-rect-size", clapi_getitemrectsize);
-    define("set-item-allow-overlap", clapi_setitemallowoverlap);
-    define("color-edit", clapi_coloredit);
-    define("color-picker", clapi_colorpicker);
-    define("color-button", clapi_colorbutton);
-    define("set-color-edit-options", clapi_setcoloreditoptions);
-    define("rect-visible-p", clapi_isrectvisible);
-    define("get-time", clapi_gettime);
-    define("get-frame-count", clapi_getframecount);
-    define("calc-text-size", clapi_calctextsize);
-    define("calc-list-clipping", clapi_calclistclipping);
-    define("tree-push", clapi_treepush);
-    define("tree-advance-to-label-pos", clapi_treeadvancetolabelpos);
-    define("get-tree-node-to-label-spacing", clapi_gettreenodetolabelspacing);
-    define("set-next-tree-node-open", clapi_setnexttreenodeopen);
-    define("open-popup", clapi_openpopup);
-    define("begin-popup", clapi_beginpopup);
-    define("begin-popup-context-item", clapi_beginpopupcontextitem);
-    define("begin-popup-context-window", clapi_beginpopupcontextwindow);
-    define("begin-popup-context-void", clapi_beginpopupcontextvoid);
-    define("begin-popup-modal", clapi_beginpopupmodal);
-    define("end-popup", clapi_endpopup);
-    define("open-popup-on-item-click", clapi_openpopuponitemclick);
-    define("popup-open-p", clapi_ispopupopen);
-    define("close-current-popup", clapi_closecurrentpopup);
-    define("push-clip-rect", clapi_pushcliprect);
-    define("pop-clip-rect", clapi_popcliprect);
-    define("get-id", clapi_getid);
-    define("begin-child-frame", clapi_beginchildframe);
-    define("end-child-frame", clapi_endchildframe);
-    define("rgb-to-hsv", clapi_rgbtohsv);
-    define("hsv-to-rgb", clapi_hsvtorgb);
-    define("get-key-index", clapi_getkeyindex);
-    define("key-down-p", clapi_iskeydown);
-    define("key-pressed-p", clapi_iskeypressed);
-    define("key-released-p", clapi_iskeyreleased);
-    define("get-key-pressed-amount", clapi_getkeypressedamount);
-    define("mouse-down-p", clapi_ismousedown);
-    define("any-mouse-down-p", clapi_isanymousedown);
-    define("mouse-clicked-p", clapi_ismouseclicked);
-    define("mouse-double-clicked-p", clapi_ismousedoubleclicked);
-    define("mouse-released-p", clapi_ismousereleased);
-    define("mouse-dragging-p", clapi_ismousedragging);
-    define("mouse-hovering-rect-p", clapi_ismousehoveringrect);
-    define("mouse-pos-valid-p", clapi_ismouseposvalid);
-    define("get-mouse-pos", clapi_getmousepos);
-    define("get-mouse-pos-on-opening-current-popup", clapi_getmouseposonopeningcurrentpopup);
-    define("get-mouse-drag-delta", clapi_getmousedragdelta);
-    define("reset-mouse-drag-delta", clapi_resetmousedragdelta);
-    define("get-mouse-cursor", clapi_getmousecursor);
-    define("set-mouse-cursor", clapi_setmousecursor);
-    define("capture-keyboard-from-app", clapi_capturekeyboardfromapp);
-    define("capture-mouse-from-app", clapi_capturemousefromapp);
-    define("input-text", clapi_inputtext);
-    define("input-text-multiline", clapi_inputtextmultiline);
-    define("input-text-with-hint", clapi_inputtextwithhint);
-    define("drag-float-range", clapi_dragfloatrange);
-    define("drag-int-range", clapi_dragintrange);
-    define("plot-lines", clapi_plotlines);
-    define("plot-histogram", clapi_plothistogram);
-    define("image", clapi_image);
-    define("image-button", clapi_imagebutton);
-    define("begin-drag-drop-source", clapi_begindragdropsource);
-    define("set-drag-drop-payload", clapi_setdragdroppayload);
-    define("end-drag-drop-source", clapi_enddragdropsource);
-    define("begin-drag-drop-target", clapi_begindragdroptarget);
-    define("accept-drag-drop-payload", clapi_acceptdragdroppayload);
-    define("end-drag-drop-target", clapi_enddragdroptarget);
-    define("get-drag-drop-payload", clapi_getdragdroppayload);
+    define("BEGIN", clapi_begin);
+    define("END", clapi_end);
+    define("TEXT", clapi_text);
+    define("%TEXT-COLORED", clapi_textcolored);
+    define("TEXT-DISABLED", clapi_textdisabled);
+    define("TEXT-WRAPPED", clapi_textwrapped);
+    define("LABEL-TEXT", clapi_labeltext);
+    define("BULLET-TEXT", clapi_bullettext);
+    define("BUTTON", clapi_button);
+    define("SAME-LINE", clapi_sameline);
+    define("SEPARATOR", clapi_separator);
+    define("BEGIN-GROUP", clapi_begingroup);
+    define("END-GROUP", clapi_endgroup);
+    define("PUSH-ITEM-WIDTH", clapi_pushitemwidth);
+    define("POP-ITEM-WIDTH", clapi_popitemwidth);
+    define("COLLAPSING-HEADER", clapi_collapsingheader);
+    define("SPACING", clapi_spacing);
+    define("TREE-NODE", clapi_treenode);
+    define("TREE-POP", clapi_treepop);
+    define("SET-NEXT-ITEM-WIDTH", clapi_setnextitemwidth);
+    define("PUSH-STYLE-VAR", clapi_pushstylevar);
+    define("POP-STYLE-VAR", clapi_popstylevar);
+    define("COLUMNS", clapi_columns);
+    define("PUSH-ID", clapi_pushid);
+    define("POP-ID", clapi_popid);
+    define("ALIGN-TEXT-TO-FRAME-PADDING", clapi_aligntexttoframepadding);
+    define("NEXT-COLUMN", clapi_nextcolumn);
+    define("SET-NEXT-WINDOW-SIZE", clapi_setnextwindowsize);
+    define("BEGIN-CHILD", clapi_beginchild);
+    define("END-CHILD", clapi_endchild);
+    define("SELECTABLE", clapi_selectable);
+    define("PUSH-STYLE-COLOR", clapi_pushstylecolor);
+    define("POP-STYLE-COLOR", clapi_popstylecolor);
+    define("SHOW-DEMO-WINDOW", clapi_showdemowindow);
+    define("CHECKBOX", clapi_checkbox);
+    define("RADIO-BUTTON", clapi_radiobutton);
+    define("ITEM-HOVERED-P", clapi_isitemhovered);
+    define("SET-TOOLTIP", clapi_settooltip);
+    define("BEGIN-TOOLTIP", clapi_begintooltip);
+    define("END-TOOLTIP", clapi_endtooltip);
+    define("GET-CLIPBOARD-TEXT", clapi_getclipboardtext);
+    define("SET-CLIPBOARD-TEXT", clapi_setclipboardtext);
+    define("BEGIN-TAB-BAR", clapi_begintabbar);
+    define("END-TAB-BAR", clapi_endtabbar);
+    define("BEGIN-TAB-ITEM", clapi_begintabitem);
+    define("END-TAB-ITEM", clapi_endtabitem);
+    define("SET-TAB-ITEM-CLOSED", clapi_settabitemclosed);
+    define("SET-ITEM-DEFAULT-FOCUS", clapi_setitemdefaultfocus);
+    define("SET-KEYBOARD-FOCUS-HERE", clapi_setkeyboardfocushere);
+    define("STYLE-COLORS", clapi_stylecolors);
+    define("BEGIN-COMBO", clapi_begincombo);
+    define("END-COMBO", clapi_endcombo);
+    define("BEGIN-LISTBOX", clapi_beginlistbox);
+    define("END-LISTBOX", clapi_endlistbox);
+    define("BEGIN-MAIN-MENU-BAR", clapi_beginmainmenubar);
+    define("END-MAIN-MENU-BAR", clapi_endmainmenubar);
+    define("BEGIN-MENU-BAR", clapi_beginmenubar);
+    define("END-MENU-BAR", clapi_endmenubar);
+    define("BEGIN-MENU", clapi_beginmenu);
+    define("END-MENU", clapi_endmenu);
+    define("MENU-ITEM", clapi_menuitem);
+    define("GET-SCROLL-X", clapi_getscrollx);
+    define("GET-SCROLL-Y", clapi_getscrollx);
+    define("GET-SCROLL-MAX-X", clapi_getscrollmaxx);
+    define("GET-SCROLL-MAX-Y", clapi_getscrollmaxy);
+    define("SET-SCROLL-X", clapi_setscrollx);
+    define("SET-SCROLL-Y", clapi_setscrolly);
+    define("SET-SCROLL-HERE-Y", clapi_setscrollherey);
+    define("SET-SCROLL-FROM-POS-Y", clapi_setscrollfromposy);
+    define("SLIDER-FLOAT", clapi_sliderfloat);
+    define("SLIDER-ANGLE", clapi_sliderangle);
+    define("SLIDER-INT", clapi_sliderint);
+    define("VSLIDER-FLOAT", clapi_vsliderfloat);
+    define("VSLIDER-INT", clapi_vsliderint);
+    define("WINDOW-APPEARING-P", clapi_iswindowappearing);
+    define("WINDOW-COLLAPSED-P", clapi_iswindowcollapsed);
+    define("WINDOW-FOCUSED-P", clapi_iswindowfocused);
+    define("WINDOW-HOVERED-P", clapi_iswindowhovered);
+    define("GET-WINDOW-POS", clapi_getwindowpos);
+    define("GET-WINDOW-SIZE", clapi_getwindowsize);
+    define("SET-NEXT-WINDOW-POS", clapi_setnextwindowpos);
+    define("SET-NEXT-WINDOW-CONTENT-SIZE", clapi_setnextwindowcontentsize);
+    define("SET-NEXT-WINDOW-COLLAPSED", clapi_setnextwindowcollapsed);
+    define("SET-NEXT-WINDOW-FOCUS", clapi_setnextwindowfocus);
+    define("SET-NEXT-WINDOW-BG-ALPHA", clapi_setnextwindowbgalpha);
+    define("SET-WINDOW-POS", clapi_setwindowpos);
+    define("SET-WINDOW-SIZE", clapi_setwindowsize);
+    define("SET-WINDOW-COLLAPSED", clapi_setwindowcollapsed);
+    define("SET-WINDOW-FOCUS", clapi_setwindowfocus);
+    define("SET-WINDOW-FONT-SCALE", clapi_setwindowfontscale);
+    define("CALC-ITEM-WIDTH", clapi_calcitemwidth);
+    define("PUSH-TEXT-WRAP-POS", clapi_pushtextwrappos);
+    define("POP-TEXT-WRAP-POS", clapi_poptextwrappos);
+    define("PUSH-ALLOW-KEYBOARD-FOCUS", clapi_pushallowkeyboardfocus);
+    define("POP-ALLOW-KEYBOARD-FOCUS", clapi_popallowkeyboardfocus);
+    define("PUSH-BUTTON-REPEAT", clapi_pushbuttonrepeat);
+    define("POP-BUTTON-REPEAT", clapi_popbuttonrepeat);
+    define("NEW-LINE", clapi_newline);
+    define("DUMMY", clapi_dummy);
+    define("INDENT", clapi_indent);
+    define("UNINDENT", clapi_unindent);
+    define("GET-CURSOR-POS", clapi_getcursorpos);
+    define("SET-CURSOR-POS", clapi_setcursorpos);
+    define("GET-CURSOR-START-POS", clapi_getcursorstartpos);
+    define("GET-CURSOR-SCREEN-POS", clapi_getcursorscreenpos);
+    define("SET-CURSOR-SCREEN-POS", clapi_setcursorscreenpos);
+    define("GET-TEXT-LINE-HEIGHT", clapi_gettextlineheight);
+    define("GET-TEXT-LINE-HEIGHT-WITH-SPACING", clapi_gettextlineheightwithspacing);
+    define("GET-FRAME-HEIGHT", clapi_getframeheight);
+    define("GET-FRAME-HEIGHT-WITH-SPACING", clapi_getframeheightwithspacing);
+    define("SMALL-BUTTON", clapi_smallbutton);
+    define("INVISIBLE-BUTTON", clapi_invisiblebutton);
+    define("ARROW-BUTTON", clapi_arrowbutton);
+    define("BULLET", clapi_bullet);
+    define("GET-CONTENT-REGION-MAX", clapi_getcontentregionmax);
+    define("GET-CONTENT-REGION-AVAIL", clapi_getcontentregionavail);
+    define("GET-WINDOW-CONTENT-REGION-MIN", clapi_getwindowcontentregionmin);
+    define("GET-WINDOW-CONTENT-REGION-MAX", clapi_getwindowcontentregionmax);
+    define("PROGRESS-BAR", clapi_progressbar);
+    define("ITEM-ACTIVE-P", clapi_isitemactive);
+    define("ITEM-FOCUSED-P", clapi_isitemfocused);
+    define("ITEM-CLICKED-P", clapi_isitemclicked);
+    define("ITEM-VISIBLE-P", clapi_isitemvisible);
+    define("ITEM-EDITED-P", clapi_isitemedited);
+    define("ITEM-ACTIVATED-P", clapi_isitemactivated);
+    define("ITEM-DEACTIVATED-P", clapi_isitemdeactivated);
+    define("ITEM-DEACTIVATED-AFTER-EDIT-P", clapi_isitemdeactivatedafteredit);
+    define("ANY-ITEM-HOVERED-P", clapi_isanyitemhovered);
+    define("ANY-ITEM-ACTIVE-P", clapi_isanyitemactive);
+    define("ANY-ITEM-FOCUSED-P", clapi_isanyitemfocused);
+    define("DRAG-FLOAT", clapi_dragfloat);
+    define("INPUT-FLOAT", clapi_inputfloat);
+    define("DRAG-INT", clapi_dragint);
+    define("INPUT-INT", clapi_inputint);
+    define("GET-COLUMN-INDEX", clapi_getcolumnindex);
+    define("GET-COLUMN-WIDTH", clapi_getcolumnwidth);
+    define("SET-COLUMN-WIDTH", clapi_setcolumnwidth);
+    define("GET-COLUMN-OFFSET", clapi_getcolumnoffset);
+    define("SET-COLUMN-OFFSET", clapi_setcolumnoffset);
+    define("GET-COLUMNS-COUNT", clapi_getcolumnscount);
+    define("SHOW-ABOUT-WINDOW", clapi_showaboutwindow);
+    define("SHOW-METRICS-WINDOW", clapi_showmetricswindow);
+    define("SHOW-STYLE-EDITOR", clapi_showstyleeditor);
+    define("SHOW-STYLE-SELECTOR", clapi_showstyleselector);
+    define("SHOW-FONT-SELECTOR", clapi_showfontselector);
+    define("SHOW-USER-GUIDE", clapi_showuserguide);
+    define("IMGUI-VERSION", clapi_getversion);
+    define("GET-ITEM-RECT-MIN", clapi_getitemrectmin);
+    define("GET-ITEM-RECT-MAX", clapi_getitemrectmax);
+    define("GET-ITEM-RECT-SIZE", clapi_getitemrectsize);
+    define("SET-ITEM-ALLOW-OVERLAP", clapi_setitemallowoverlap);
+    define("COLOR-EDIT", clapi_coloredit);
+    define("COLOR-PICKER", clapi_colorpicker);
+    define("COLOR-BUTTON", clapi_colorbutton);
+    define("SET-COLOR-EDIT-OPTIONS", clapi_setcoloreditoptions);
+    define("RECT-VISIBLE-P", clapi_isrectvisible);
+    define("GET-TIME", clapi_gettime);
+    define("GET-FRAME-COUNT", clapi_getframecount);
+    define("CALC-TEXT-SIZE", clapi_calctextsize);
+    define("CALC-LIST-CLIPPING", clapi_calclistclipping);
+    define("TREE-PUSH", clapi_treepush);
+    define("TREE-ADVANCE-TO-LABEL-POS", clapi_treeadvancetolabelpos);
+    define("GET-TREE-NODE-TO-LABEL-SPACING", clapi_gettreenodetolabelspacing);
+    define("SET-NEXT-TREE-NODE-OPEN", clapi_setnexttreenodeopen);
+    define("OPEN-POPUP", clapi_openpopup);
+    define("BEGIN-POPUP", clapi_beginpopup);
+    define("BEGIN-POPUP-CONTEXT-ITEM", clapi_beginpopupcontextitem);
+    define("BEGIN-POPUP-CONTEXT-WINDOW", clapi_beginpopupcontextwindow);
+    define("BEGIN-POPUP-CONTEXT-VOID", clapi_beginpopupcontextvoid);
+    define("BEGIN-POPUP-MODAL", clapi_beginpopupmodal);
+    define("END-POPUP", clapi_endpopup);
+    define("OPEN-POPUP-ON-ITEM-CLICK", clapi_openpopuponitemclick);
+    define("POPUP-OPEN-P", clapi_ispopupopen);
+    define("CLOSE-CURRENT-POPUP", clapi_closecurrentpopup);
+    define("PUSH-CLIP-RECT", clapi_pushcliprect);
+    define("POP-CLIP-RECT", clapi_popcliprect);
+    define("GET-ID", clapi_getid);
+    define("BEGIN-CHILD-FRAME", clapi_beginchildframe);
+    define("END-CHILD-FRAME", clapi_endchildframe);
+    define("RGB-TO-HSV", clapi_rgbtohsv);
+    define("HSV-TO-RGB", clapi_hsvtorgb);
+    define("GET-KEY-INDEX", clapi_getkeyindex);
+    define("KEY-DOWN-P", clapi_iskeydown);
+    define("KEY-PRESSED-P", clapi_iskeypressed);
+    define("KEY-RELEASED-P", clapi_iskeyreleased);
+    define("GET-KEY-PRESSED-AMOUNT", clapi_getkeypressedamount);
+    define("MOUSE-DOWN-P", clapi_ismousedown);
+    define("ANY-MOUSE-DOWN-P", clapi_isanymousedown);
+    define("MOUSE-CLICKED-P", clapi_ismouseclicked);
+    define("MOUSE-DOUBLE-CLICKED-P", clapi_ismousedoubleclicked);
+    define("MOUSE-RELEASED-P", clapi_ismousereleased);
+    define("MOUSE-DRAGGING-P", clapi_ismousedragging);
+    define("MOUSE-HOVERING-RECT-P", clapi_ismousehoveringrect);
+    define("MOUSE-POS-VALID-P", clapi_ismouseposvalid);
+    define("GET-MOUSE-POS", clapi_getmousepos);
+    define("GET-MOUSE-POS-ON-OPENING-CURRENT-POPUP", clapi_getmouseposonopeningcurrentpopup);
+    define("GET-MOUSE-DRAG-DELTA", clapi_getmousedragdelta);
+    define("RESET-MOUSE-DRAG-DELTA", clapi_resetmousedragdelta);
+    define("GET-MOUSE-CURSOR", clapi_getmousecursor);
+    define("SET-MOUSE-CURSOR", clapi_setmousecursor);
+    define("CAPTURE-KEYBOARD-FROM-APP", clapi_capturekeyboardfromapp);
+    define("CAPTURE-MOUSE-FROM-APP", clapi_capturemousefromapp);
+    define("INPUT-TEXT", clapi_inputtext);
+    define("INPUT-TEXT-MULTILINE", clapi_inputtextmultiline);
+    define("INPUT-TEXT-WITH-HINT", clapi_inputtextwithhint);
+    define("DRAG-FLOAT-RANGE", clapi_dragfloatrange);
+    define("DRAG-INT-RANGE", clapi_dragintrange);
+    define("PLOT-LINES", clapi_plotlines);
+    define("PLOT-HISTOGRAM", clapi_plothistogram);
+    define("IMAGE", clapi_image);
+    define("IMAGE-BUTTON", clapi_imagebutton);
+    define("BEGIN-DRAG-DROP-SOURCE", clapi_begindragdropsource);
+    define("SET-DRAG-DROP-PAYLOAD", clapi_setdragdroppayload);
+    define("END-DRAG-DROP-SOURCE", clapi_enddragdropsource);
+    define("BEGIN-DRAG-DROP-TARGET", clapi_begindragdroptarget);
+    define("ACCEPT-DRAG-DROP-PAYLOAD", clapi_acceptdragdroppayload);
+    define("END-DRAG-DROP-TARGET", clapi_enddragdroptarget);
+    define("GET-DRAG-DROP-PAYLOAD", clapi_getdragdroppayload);
 
     // Convenience functions not part of imgui
-    define("load-texture", clapi_loadtexture);
-    define("create-texture", clapi_createtexture);
-    define("delete-texture", clapi_deletetexture);
+    define("LOAD-TEXTURE", clapi_loadtexture);
+    define("CREATE-TEXTURE", clapi_createtexture);
+    define("DELETE-TEXTURE", clapi_deletetexture);
 }

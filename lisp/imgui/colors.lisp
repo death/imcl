@@ -1,6 +1,14 @@
+;;;; +----------------------------------------------------------------+
+;;;; | IMGUI-ECL                                                      |
+;;;; +----------------------------------------------------------------+
+
+(in-package #:imgui)
+
+(export
+ '(*named-colors-plist*))
+
 (defvar *named-colors-plist*
-  '(
-    :air-force-blue-raf #x5d8aa8
+  '(:air-force-blue-raf #x5d8aa8
     :air-force-blue-usaf #x00308f
     :air-superiority-blue #x72a0c1
     :alabama-crimson #xa32638
@@ -864,5 +872,4 @@
     :yellow-process #xffef00
     :yellow-ryb #xfefe33
     :zaffre #x0014a8
-    :zinnwaldite-brown #x2c1608
-    ))
+    :zinnwaldite-brown #x2c1608))
