@@ -251,7 +251,9 @@
      ("Basic Widgets" show-basic-widgets)
      ("Colors" show-colors-window)
      ("Information" show-info-window)
-     ("Drag & Drop" show-dnd-window))
+     ("Drag & Drop" show-dnd-window)
+     ("Textures" show-texture-test)
+     ("Vecto Fun" show-vecto-fun))
     ("OpenGL"
      ("Setup environment" (setup-gl-environment)))
     ("Windows"
