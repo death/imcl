@@ -1,9 +1,9 @@
 ;;;; +----------------------------------------------------------------+
-;;;; | IMGUI-ECL                                                      |
+;;;; | IMCL                                                           |
 ;;;; +----------------------------------------------------------------+
 
-(asdf:defsystem #:imgui
-  :description "Lisp support code for imgui-ecl"
+(asdf:defsystem #:imcl
+  :description "Lisp support code for IMCL"
   :author "death <github.com/death>"
   :serial t
   :components

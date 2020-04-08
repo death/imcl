@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(imgui_hello)
+project(imcl)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "./cmake")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -19,7 +19,7 @@ include_directories(
   ${ECL_INCLUDE_DIR}
   )
 
-add_executable(hello
+add_executable(imcl
   main.cpp
   imgui.cpp
   imgui_demo.cpp
@@ -28,6 +28,6 @@ add_executable(hello
   imgui_impl_glfw.cpp
   imgui_impl_opengl3.cpp
   stb_image.cpp
-  cl_bindings.cpp)
+  bindings.cpp)
 
-target_link_libraries(hello ${OPENGL_LIBRARY} glfw ${GLEW_LIBRARIES} ${ECL_LIBRARIES})
+target_link_libraries(imcl ${OPENGL_LIBRARY} glfw ${GLEW_LIBRARIES} ${ECL_LIBRARIES})

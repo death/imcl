@@ -82,11 +82,11 @@ static cl_object as_object(cl_object obj)
 
 // Our gui package
 
-cl_object imgui_package()
+cl_object imcl_package()
 {
     static cl_object package = ECL_NIL;
     if (package == ECL_NIL) {
-        package = ecl_make_package(ecl_cstring_to_base_string_or_nil("IMGUI"),
+        package = ecl_make_package(ecl_cstring_to_base_string_or_nil("IMCL"),
                                    cl_list(1, ecl_cstring_to_base_string_or_nil("UI")),
                                    ecl_list1(cl_core.lisp_package),
                                    ECL_NIL);
@@ -96,13 +96,13 @@ cl_object imgui_package()
 
 static cl_object intern(const char *name)
 {
-    cl_object package = imgui_package();
+    cl_object package = imcl_package();
     return _ecl_intern(name, package);
 }
 
-cl_object imgui_intern_and_export(const char *name)
+cl_object imcl_intern_and_export(const char *name)
 {
-    cl_object package = imgui_package();
+    cl_object package = imcl_package();
     cl_object symbol = _ecl_intern(name, package);
     cl_export2(symbol, package);
     return symbol;
@@ -110,7 +110,7 @@ cl_object imgui_intern_and_export(const char *name)
 
 static cl_object define(const char *name, cl_objectfn fn)
 {
-    cl_object symbol = imgui_intern_and_export(name);
+    cl_object symbol = imcl_intern_and_export(name);
     ecl_def_c_function_va(symbol, fn);
     return symbol;
 }
@@ -3123,7 +3123,7 @@ APIFUNC_END
 
 // Bindings definition
 
-void cl_define_bindings()
+void imcl_define_bindings()
 {
     define("BEGIN", clapi_begin);
     define("END", clapi_end);

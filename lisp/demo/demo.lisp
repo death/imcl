@@ -1,9 +1,9 @@
 ;;;; +----------------------------------------------------------------+
-;;;; | IMGUI-ECL                                                      |
+;;;; | IMCL                                                           |
 ;;;; +----------------------------------------------------------------+
 
 (defpackage #:demo
-  (:use #:cl #:imgui))
+  (:use #:cl #:imcl))
 
 (in-package #:demo)
 
@@ -916,4 +916,4 @@
   "IM-TICK runs on each iteration of the UI loop."
   (with-simple-restart (skip "Skip this tick")
     (main-menu)
-    (imgui:app-tick)))
+    (app-tick)))

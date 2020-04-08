@@ -5,7 +5,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "cl_bindings.hpp"
+#include "bindings.hpp"
 #include <stdio.h>
 #include <math.h>
 #include <sstream>
@@ -52,10 +52,10 @@ struct error_state
 
 struct error_state g_error_state;
 
-void imgui_ecl_assert_fail(const char *assertion,
-                           const char *file,
-                           unsigned int line,
-                           const char *function)
+void imcl_assert_fail(const char *assertion,
+                      const char *file,
+                      unsigned int line,
+                      const char *function)
 {
     g_error_state.show_error = 1;
     snprintf(g_error_state.message, ERROR_STATE_MESSAGE_NCHARS,
@@ -144,15 +144,15 @@ int main(int argc, char **argv)
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    cl_define_bindings();
+    imcl_define_bindings();
 
     cl_object window_cl = ecl_make_pointer(window);
-    cl_set(imgui_intern_and_export("*GLFW-WINDOW*"), window_cl);
+    cl_set(imcl_intern_and_export("*GLFW-WINDOW*"), window_cl);
 
-    cl_object time_in_imtick_var = imgui_intern_and_export("*TIME-IN-IM-TICK*");
+    cl_object time_in_imtick_var = imcl_intern_and_export("*TIME-IN-IM-TICK*");
     cl_set(time_in_imtick_var, ecl_make_int32_t(0));
 
-    cl_object time_in_gltick_var = imgui_intern_and_export("*TIME-IN-GL-TICK*");
+    cl_object time_in_gltick_var = imcl_intern_and_export("*TIME-IN-GL-TICK*");
     cl_set(time_in_gltick_var, ecl_make_int32_t(0));
 
     cl_eval(c_string_to_object("(load \"main\")"));

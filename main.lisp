@@ -4,7 +4,7 @@
 (load "~/quicklisp/setup.lisp")
 (setf ql:*local-project-directories*
       (append ql:*local-project-directories*
-              (list "/home/death/dev/imgui-ecl/lisp/"
+              (list "/home/death/dev/imcl/lisp/"
                     (ql:qmerge "third-party/"))))
 (ql:quickload "swank")
 (swank:create-server :port 4242 :dont-close t)

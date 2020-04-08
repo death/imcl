@@ -1,11 +1,11 @@
 ;;;; +----------------------------------------------------------------+
-;;;; | IMGUI-ECL                                                      |
+;;;; | IMCL                                                           |
 ;;;; +----------------------------------------------------------------+
 
 (asdf:defsystem #:demo
-  :description "Demo code for imgui-ecl"
+  :description "Demo code for IMCL"
   :author "death <github.com/death>"
   :serial t
-  :depends-on ("imgui" "vecto")
+  :depends-on ("imcl" "vecto")
   :components
   ((:file "demo")))
