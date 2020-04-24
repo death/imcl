@@ -111,7 +111,13 @@ cl_object imcl_intern_and_export(const char *name)
 static cl_object define(const char *name, cl_objectfn fn)
 {
     cl_object symbol = imcl_intern_and_export(name);
-    ecl_def_c_function_va(symbol, fn);
+    // New ECL 20.4.24 (yay!) had a breaking change adding a parameter
+    // for specifying the number of fixed arguments.  The commit
+    // message for that change says that it's due to ARM64 calling
+    // conventions.  Rather than go through each function and count
+    // the number of required arguments, I decided to pass zero (too
+    // bad for iOS).
+    ecl_def_c_function_va(symbol, fn, 0);
     return symbol;
 }
 
